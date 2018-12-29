@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Gold.IO.Exchange.API.Storage\Gold.IO.Exchange.API.Storage.csproj" />
+  </ItemGroup>
+
+</Project>

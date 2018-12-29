@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gold.IO.Exchange.API", "Gol
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gold.IO.Exchange.API.Storage", "Gold.IO.Exchange.API.Storage\Gold.IO.Exchange.API.Storage.csproj", "{7D8C1EE2-37CC-4723-A8F0-61F434A3A466}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gold.IO.Exchange.API.Services", "Gold.IO.Exchange.API.Services\Gold.IO.Exchange.API.Services.csproj", "{3D4E43F4-93B7-4F1C-80BC-F1B3D5852AFE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{7D8C1EE2-37CC-4723-A8F0-61F434A3A466}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7D8C1EE2-37CC-4723-A8F0-61F434A3A466}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7D8C1EE2-37CC-4723-A8F0-61F434A3A466}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3D4E43F4-93B7-4F1C-80BC-F1B3D5852AFE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D4E43F4-93B7-4F1C-80BC-F1B3D5852AFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D4E43F4-93B7-4F1C-80BC-F1B3D5852AFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D4E43F4-93B7-4F1C-80BC-F1B3D5852AFE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

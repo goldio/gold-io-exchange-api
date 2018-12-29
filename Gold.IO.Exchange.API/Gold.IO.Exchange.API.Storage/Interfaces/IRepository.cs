@@ -2,7 +2,7 @@
 using NHibernate;
 using System.Linq;
 
-namespace Storage.Interfaces
+namespace Gold.IO.Exchange.API.Storage.Interfaces
 {
     public interface IRepository<T> where T : PersistentObject
     {
