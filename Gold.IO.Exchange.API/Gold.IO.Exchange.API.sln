@@ -7,9 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Gold.IO.Exchange.API", "Gol
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Gold.IO.Exchange.API.Storage", "Gold.IO.Exchange.API.Storage\Gold.IO.Exchange.API.Storage.csproj", "{7D8C1EE2-37CC-4723-A8F0-61F434A3A466}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Gold.IO.Exchange.API.Services", "Gold.IO.Exchange.API.Services\Gold.IO.Exchange.API.Services.csproj", "{3D4E43F4-93B7-4F1C-80BC-F1B3D5852AFE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Gold.IO.Exchange.API.BusinessLogic", "Gold.IO.Exchange.API.Services\Gold.IO.Exchange.API.BusinessLogic.csproj", "{3D4E43F4-93B7-4F1C-80BC-F1B3D5852AFE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gold.IO.Exchange.API.Domain", "Gold.IO.Exchange.API.Domain\Gold.IO.Exchange.API.Domain.csproj", "{3D8981E2-E41F-4A7E-978D-DAD379EA2AAE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Gold.IO.Exchange.API.Domain", "Gold.IO.Exchange.API.Domain\Gold.IO.Exchange.API.Domain.csproj", "{3D8981E2-E41F-4A7E-978D-DAD379EA2AAE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
