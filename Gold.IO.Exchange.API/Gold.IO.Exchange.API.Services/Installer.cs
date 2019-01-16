@@ -8,7 +8,9 @@ namespace Gold.IO.Exchange.API.BusinessLogic
     {
         public static void AddBuisnessServices(this IServiceCollection container)
         {
-            container.AddScoped<IUserService, UserService>();
+            container
+                .AddScoped<IUserService, UserService>()
+                .AddScoped<IPersonService, PersonService>();
         }
     }
 }
