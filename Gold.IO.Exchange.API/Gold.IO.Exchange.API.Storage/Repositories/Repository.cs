@@ -1,8 +1,9 @@
-﻿using NHibernate;
-using System;
-using Domain;
-using Storage.Interfaces;
+﻿using System;
 using System.Linq;
+using NHibernate;
+using Storage.Interfaces;
+using Gold.IO.Exchange.API.Storage.Interfaces;
+using Gold.IO.Exchange.API.Domain;
 
 namespace Storage.Repositories
 {

@@ -1,4 +1,4 @@
-﻿using Domain;
+﻿using Gold.IO.Exchange.API.Domain;
 using NHibernate;
 using System.Linq;
 

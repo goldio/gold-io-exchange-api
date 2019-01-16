@@ -1,11 +1,10 @@
-﻿using Gold.IO.Exchange.API.Services.Interfaces;
-using Gold.IO.Exchange.API.Storage.Interfaces;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
-using System.Text;
+using Gold.IO.Exchange.API.BusinessLogic.Interfaces;
+using Gold.IO.Exchange.API.Domain;
+using Gold.IO.Exchange.API.Storage.Interfaces;
 
-namespace Gold.IO.Exchange.API.Services
+namespace Gold.IO.Exchange.API.BusinessLogic.Services
 {
     public class BaseCrudService<T> : IBaseCrudService<T> where T : PersistentObject, new()
     {

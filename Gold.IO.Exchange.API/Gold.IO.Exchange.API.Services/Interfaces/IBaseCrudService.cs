@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 
-namespace Gold.IO.Exchange.API.Services.Interfaces
+namespace Gold.IO.Exchange.API.BusinessLogic.Interfaces
 {
     public interface IBaseCrudService<T>
     {
