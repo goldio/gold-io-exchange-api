@@ -1,0 +1,26 @@
+﻿using Gold.IO.Exchange.API.Domain;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace Gold.IO.Exchange.API.ViewModels
+{
+    public class CityViewModel
+    {
+        public long ID { get; set; }
+        public string Name { get; set; }
+        public CountryViewModel Country { get; set; }
+
+        public CityViewModel() { }
+
+        public CityViewModel(City city)
+        {
+            ID = city.ID;
+            Name = city.Name;
+            Country = (CountryViewModel)city.Country;
+        }
+
+        public static explicit operator CityViewModel(City city) => new CityViewModel(city);
+    }
+}

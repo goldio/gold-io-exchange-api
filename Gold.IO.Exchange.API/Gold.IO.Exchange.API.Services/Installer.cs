@@ -12,7 +12,8 @@ namespace Gold.IO.Exchange.API.BusinessLogic
                 .AddScoped<IUserService, UserService>()
                 .AddScoped<IPersonService, PersonService>()
                 .AddScoped<ILocaleService, LocaleService>()
-                .AddScoped<ICountryService, CountryService>();
+                .AddScoped<ICountryService, CountryService>()
+                .AddScoped<ICityService, CityService>();
         }
     }
 }
