@@ -8,6 +8,7 @@ namespace Gold.IO.Exchange.API.Domain
     {
         public virtual string Name { get; set; }
         public virtual string LangCode { get; set; }
+        public virtual File Icon { get; set; }
         public virtual bool Deleted { get; set; }
     }
 }
