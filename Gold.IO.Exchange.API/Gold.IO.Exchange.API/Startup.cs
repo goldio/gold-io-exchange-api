@@ -31,7 +31,7 @@ namespace Gold.IO.Exchange.API
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             services.AddBuisnessServices();
-            services.AddNHibernate("Server=localhost;Port=3306;Uid=root;Pwd=admin;Database=goldio;SslMode=none;");
+            services.AddNHibernate("Server=localhost;Port=3306;Uid=root;Pwd=admin;Database=goldio_exchange;SslMode=none;");
             services.AddCors();
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
