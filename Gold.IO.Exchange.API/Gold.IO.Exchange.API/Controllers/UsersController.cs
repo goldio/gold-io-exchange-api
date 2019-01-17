@@ -6,6 +6,9 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Gold.IO.Exchange.API.BusinessLogic.Interfaces;
+using Gold.IO.Exchange.API.Domain;
+using Gold.IO.Exchange.API.ViewModels.Request;
+using Gold.IO.Exchange.API.ViewModels.Response;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Gold.IO.Exchange.API.Controllers
@@ -15,17 +18,46 @@ namespace Gold.IO.Exchange.API.Controllers
     public class UsersController : Controller
     {
         private IUserService UserService { get; set; }
+        private IPersonService PersonService { get; set; }
 
         public UsersController([FromServices]
-            IUserService userService)
+            IUserService userService,
+            IPersonService personService)
         {
             UserService = userService;
+            PersonService = personService;
         }
 
         [HttpPost("sign-up")]
-        public async Task<IActionResult> UserSignUp()
+        public async Task<IActionResult> UserSignUp([FromBody] SignUpRequest request)
         {
+            var user = UserService.GetAll().FirstOrDefault(x => x.Login == request.Email);
+            if (user != null)
+                return Json(new ResponseModel { Success = false, Message = "Email already used." });
 
+            var person = PersonService.GetAll().FirstOrDefault(x => x.Email == request.Email);
+            if (person != null)
+                return Json(new ResponseModel { Success = false, Message = "Email already used." });
+
+            user = new User
+            {
+                Login = request.Email,
+                Password = CreateMD5(request.Password),
+                RegistrationDate = DateTime.UtcNow
+            };
+
+            UserService.Create(user);
+
+            person = new Person
+            {
+                FullName = request.FullName,
+                Email = request.Email,
+                User = user
+            };
+
+            PersonService.Create(person);
+
+            return Json(new ResponseModel { Success = true, Message = "OK" });
         }
 
         private ClaimsIdentity GetIdentity(string login, string password)

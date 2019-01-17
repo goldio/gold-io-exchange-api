@@ -17,8 +17,7 @@ namespace Gold.IO.Exchange.API.Storage.Mappings
             References(e => e.User, "id_user");
             References(e => e.City, "id_city");
 
-            Map(u => u.FirstName, "first_name");
-            Map(u => u.LastName, "last_name");
+            Map(u => u.FullName, "full_name");
             Map(u => u.BirthDate, "birth_date");
             Map(u => u.Email, "email");
             Map(u => u.PhoneNumber, "phone");

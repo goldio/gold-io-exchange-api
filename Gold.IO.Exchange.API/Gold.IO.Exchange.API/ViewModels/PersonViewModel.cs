@@ -11,8 +11,7 @@ namespace Gold.IO.Exchange.API.ViewModels
         public UserViewModel User { get; set; }
 
         public long ID { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
+        public string FullName { get; set; }
         public DateTime BirthDate { get; set; }
         public string Email { get; set; }
         public string PhoneNumber { get; set; }
@@ -24,8 +23,7 @@ namespace Gold.IO.Exchange.API.ViewModels
         public PersonViewModel(Person person)
         {
             ID = person.ID;
-            FirstName = person.FirstName;
-            LastName = person.LastName;
+            FullName = person.FullName;
             BirthDate = person.BirthDate;
             Email = person.Email;
             PhoneNumber = person.PhoneNumber;

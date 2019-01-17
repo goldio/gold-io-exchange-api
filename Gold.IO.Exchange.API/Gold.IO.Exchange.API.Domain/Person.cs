@@ -8,8 +8,7 @@ namespace Gold.IO.Exchange.API.Domain
     {
         public virtual User User { get; set; }
 
-        public virtual string FirstName { get; set; }
-        public virtual string LastName { get; set; }
+        public virtual string FullName { get; set; }
         public virtual DateTime BirthDate { get; set; }
         public virtual string Email { get; set; }
         public virtual string PhoneNumber { get; set; }
