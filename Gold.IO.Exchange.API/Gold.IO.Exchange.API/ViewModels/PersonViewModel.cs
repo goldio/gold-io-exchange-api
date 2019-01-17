@@ -16,8 +16,7 @@ namespace Gold.IO.Exchange.API.ViewModels
         public DateTime BirthDate { get; set; }
         public string Email { get; set; }
         public string PhoneNumber { get; set; }
-        public string Country { get; set; }
-        public string City { get; set; }
+        public CityViewModel City { get; set; }
         public string Address { get; set; }
 
         public PersonViewModel() { }
@@ -30,11 +29,10 @@ namespace Gold.IO.Exchange.API.ViewModels
             BirthDate = person.BirthDate;
             Email = person.Email;
             PhoneNumber = person.PhoneNumber;
-            Country = person.Country;
-            City = person.City;
             Address = person.Address;
 
-            User = (UserViewModel)person.User; 
+            User = (UserViewModel)person.User;
+            City = (CityViewModel)person.City;
         }
     }
 }
