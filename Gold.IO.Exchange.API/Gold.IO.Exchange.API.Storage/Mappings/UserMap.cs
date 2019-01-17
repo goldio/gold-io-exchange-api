@@ -14,6 +14,7 @@ namespace Gold.IO.Exchange.API.Storage.Mappings
             Map(u => u.Login, "login");
             Map(u => u.Password, "password");
             Map(u => u.RegistrationDate, "reg_date");
+            Map(u => u.Role, "role");
             Map(u => u.Deleted, "deleted").Not.Nullable();
         }
     }

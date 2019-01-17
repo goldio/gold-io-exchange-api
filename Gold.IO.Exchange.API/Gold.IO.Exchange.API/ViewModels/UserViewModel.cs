@@ -1,4 +1,5 @@
 ﻿using Gold.IO.Exchange.API.Domain;
+using Gold.IO.Exchange.API.Domain.Enum;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,7 @@ namespace Gold.IO.Exchange.API.ViewModels
         public long ID { get; set; }
         public string Login { get; set; }
         public DateTime RegistrationDate { get; set; }
+        public UserRole Role { get; set; }
 
         public UserViewModel() { }
 
@@ -19,6 +21,7 @@ namespace Gold.IO.Exchange.API.ViewModels
             ID = user.ID;
             Login = user.Login;
             RegistrationDate = user.RegistrationDate;
+            Role = user.Role;
         }
 
         public static explicit operator UserViewModel(User user) => new UserViewModel(user);
