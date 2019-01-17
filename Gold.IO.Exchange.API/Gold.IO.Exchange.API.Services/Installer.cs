@@ -14,7 +14,8 @@ namespace Gold.IO.Exchange.API.BusinessLogic
                 .AddScoped<ILocaleService, LocaleService>()
                 .AddScoped<ICountryService, CountryService>()
                 .AddScoped<ICityService, CityService>()
-                .AddScoped<IFileService, FileService>();
+                .AddScoped<IFileService, FileService>()
+                .AddScoped<ICoinService, CoinService>();
         }
     }
 }
