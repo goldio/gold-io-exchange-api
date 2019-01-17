@@ -6,8 +6,7 @@ namespace Gold.IO.Exchange.API.Domain.Enum
 {
     public enum UserRole
     {
-        Inactive = 0,
-        Activated = 1,
-        Admin = 2
+        User = 0,
+        Admin = 1
     }
 }

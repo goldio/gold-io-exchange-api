@@ -1,15 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using Gold.IO.Exchange.API.BusinessLogic;
 using Gold.IO.Exchange.API.BusinessLogic.Interfaces;
 using Gold.IO.Exchange.API.Domain;
+using Gold.IO.Exchange.API.Domain.Enum;
+using Gold.IO.Exchange.API.ViewModels;
 using Gold.IO.Exchange.API.ViewModels.Request;
 using Gold.IO.Exchange.API.ViewModels.Response;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Gold.IO.Exchange.API.Controllers
 {
@@ -43,7 +48,8 @@ namespace Gold.IO.Exchange.API.Controllers
             {
                 Login = request.Email,
                 Password = CreateMD5(request.Password),
-                RegistrationDate = DateTime.UtcNow
+                RegistrationDate = DateTime.UtcNow,
+                Role = UserRole.User
             };
 
             UserService.Create(user);
@@ -58,6 +64,19 @@ namespace Gold.IO.Exchange.API.Controllers
             PersonService.Create(person);
 
             return Json(new ResponseModel { Success = true, Message = "OK" });
+        }
+
+        [HttpPost("sign-in")]
+        public async Task<IActionResult> UserSignIn([FromBody] SignInRequest request)
+        {
+            var user = UserService.GetAll().FirstOrDefault(x => x.Login == request.Login && x.Password == CreateMD5(request.Password));
+            if (user == null)
+                return Json(new ResponseModel { Success = false, Message = "Wrong email or password" });
+
+            var identity = GetIdentity(request.Login, request.Password);
+            var token = GetSecurityToken(identity, user.Role);
+
+            return Json(new SignInResponse { Success = true, Message = "OK", SecurityToken = token });
         }
 
         private ClaimsIdentity GetIdentity(string login, string password)
@@ -77,6 +96,31 @@ namespace Gold.IO.Exchange.API.Controllers
                 ClaimsIdentity.DefaultRoleClaimType);
 
             return claimsIdentity;
+        }
+
+        private SecurityTokenViewModel GetSecurityToken(ClaimsIdentity identity, UserRole role)
+        {
+            var now = DateTime.UtcNow;
+            var expires = now.Add(TimeSpan.FromMinutes(AuthOptions.LIFETIME));
+
+            var jwt = new JwtSecurityToken(
+                    issuer: AuthOptions.ISSUER,
+                    audience: AuthOptions.AUDIENCE,
+                    notBefore: now,
+                    claims: identity.Claims,
+                    expires: expires,
+
+                    signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(), SecurityAlgorithms.HmacSha256));
+            var encodedJwt = new JwtSecurityTokenHandler().WriteToken(jwt);
+
+            var token = new SecurityTokenViewModel()
+            {
+                Token = encodedJwt,
+                Role = role,
+                ExpireDate = expires
+            };
+
+            return token;
         }
 
         private string CreateMD5(string input)
