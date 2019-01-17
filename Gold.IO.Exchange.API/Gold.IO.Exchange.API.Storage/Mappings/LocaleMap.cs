@@ -1,0 +1,22 @@
+﻿using FluentNHibernate.Mapping;
+using Gold.IO.Exchange.API.Domain;
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace Gold.IO.Exchange.API.Storage.Mappings
+{
+    public class LocaleMap : ClassMap<Locale>
+    {
+        public LocaleMap()
+        {
+            Table("locales");
+
+            Id(u => u.ID, "id");
+
+            Map(u => u.Name, "name");
+            Map(u => u.LangCode, "lang_code");
+            Map(u => u.Deleted, "deleted").Not.Nullable();
+        }
+    }
+}

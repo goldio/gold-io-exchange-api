@@ -34,7 +34,7 @@ namespace Gold.IO.Exchange.API.ViewModels
             City = person.City;
             Address = person.Address;
 
-            User = (UserViewModel)person.User;
+            User = (UserViewModel)person.User; 
         }
     }
 }
