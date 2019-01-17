@@ -14,6 +14,7 @@ namespace Gold.IO.Exchange.API.Storage.Mappings
 
             Id(u => u.ID, "id");
 
+            References(e => e.Flag, "id_flag");
             References(e => e.Locale, "id_locale");
 
             Map(u => u.Name, "name");

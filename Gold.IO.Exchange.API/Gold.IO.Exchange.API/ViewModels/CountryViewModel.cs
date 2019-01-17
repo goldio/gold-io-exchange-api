@@ -10,6 +10,7 @@ namespace Gold.IO.Exchange.API.ViewModels
     {
         public long ID { get; set; }
         public string Name { get; set; }
+        public FileViewModel Flag { get; set; }
         public LocaleViewModel Locale { get; set; }
 
         public CountryViewModel() { }
@@ -18,6 +19,8 @@ namespace Gold.IO.Exchange.API.ViewModels
         {
             ID = country.ID;
             Name = country.Name;
+
+            Flag = (FileViewModel)country.Flag;
             Locale = (LocaleViewModel)country.Locale;
         }
 
