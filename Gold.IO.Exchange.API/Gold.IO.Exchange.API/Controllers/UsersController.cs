@@ -73,7 +73,7 @@ namespace Gold.IO.Exchange.API.Controllers
             if (user == null)
                 return Json(new ResponseModel { Success = false, Message = "Wrong email or password" });
 
-            var identity = GetIdentity(request.Login, request.Password);
+            var identity = GetIdentity(request.Login, CreateMD5(request.Password));
             var token = GetSecurityToken(identity, user.Role);
 
             return Json(new SignInResponse { Success = true, Message = "OK", SecurityToken = token });
@@ -109,7 +109,6 @@ namespace Gold.IO.Exchange.API.Controllers
                     notBefore: now,
                     claims: identity.Claims,
                     expires: expires,
-
                     signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(), SecurityAlgorithms.HmacSha256));
             var encodedJwt = new JwtSecurityTokenHandler().WriteToken(jwt);
 
