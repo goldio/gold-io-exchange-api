@@ -32,5 +32,7 @@ namespace Gold.IO.Exchange.API.ViewModels
             User = (UserViewModel)person.User;
             City = (CityViewModel)person.City;
         }
+
+        public static explicit operator PersonViewModel(Person person) => new PersonViewModel(person);
     }
 }
