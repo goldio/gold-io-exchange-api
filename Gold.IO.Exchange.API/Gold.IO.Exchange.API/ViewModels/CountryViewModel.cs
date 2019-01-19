@@ -17,13 +17,14 @@ namespace Gold.IO.Exchange.API.ViewModels
 
         public CountryViewModel(Country country)
         {
-            ID = country.ID;
-            Name = country.Name;
+            if (country != null)
+            {
+                ID = country.ID;
+                Name = country.Name;
 
-            Flag = (FileViewModel)country.Flag;
-            Locale = (LocaleViewModel)country.Locale;
+                Flag = new FileViewModel(country.Flag);
+                Locale = new LocaleViewModel(country.Locale);
+            }
         }
-
-        public static explicit operator CountryViewModel(Country country) => new CountryViewModel(country);
     }
 }

@@ -33,7 +33,7 @@ namespace Gold.IO.Exchange.API.Controllers
             var user = UserService.GetAll().FirstOrDefault(x => x.Login == User.Identity.Name);
             var person = PersonService.GetAll().FirstOrDefault(x => x.User == user);
 
-            return Json(new DataResponse<PersonViewModel> { Success = true, Message = "OK", Data = (PersonViewModel)person });
+            return Json(new DataResponse<PersonViewModel> { Success = true, Message = "OK", Data = new PersonViewModel(person) });
         }
     }
 }

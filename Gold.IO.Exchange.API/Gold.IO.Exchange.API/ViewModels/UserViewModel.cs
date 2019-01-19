@@ -18,12 +18,13 @@ namespace Gold.IO.Exchange.API.ViewModels
 
         public UserViewModel(User user)
         {
-            ID = user.ID;
-            Login = user.Login;
-            RegistrationDate = user.RegistrationDate;
-            Role = user.Role;
+            if (user != null)
+            {
+                ID = user.ID;
+                Login = user.Login;
+                RegistrationDate = user.RegistrationDate;
+                Role = user.Role;
+            }
         }
-
-        public static explicit operator UserViewModel(User user) => new UserViewModel(user);
     }
 }

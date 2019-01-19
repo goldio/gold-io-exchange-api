@@ -16,11 +16,12 @@ namespace Gold.IO.Exchange.API.ViewModels
 
         public FileViewModel(File file)
         {
-            ID = file.ID;
-            Name = file.Name;
-            URL = file.URL;
+            if (file != null)
+            {
+                ID = file.ID;
+                Name = file.Name;
+                URL = file.URL;
+            }
         }
-
-        public static explicit operator FileViewModel(File file) => new FileViewModel(file);
     }
 }

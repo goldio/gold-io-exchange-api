@@ -16,11 +16,12 @@ namespace Gold.IO.Exchange.API.ViewModels
 
         public CityViewModel(City city)
         {
-            ID = city.ID;
-            Name = city.Name;
-            Country = (CountryViewModel)city.Country;
+            if (city != null)
+            {
+                ID = city.ID;
+                Name = city.Name;
+                Country = new CountryViewModel(city.Country);
+            }
         }
-
-        public static explicit operator CityViewModel(City city) => new CityViewModel(city);
     }
 }

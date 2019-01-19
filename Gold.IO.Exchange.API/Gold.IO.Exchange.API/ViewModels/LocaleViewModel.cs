@@ -17,13 +17,14 @@ namespace Gold.IO.Exchange.API.ViewModels
 
         public LocaleViewModel(Locale locale)
         {
-            ID = locale.ID;
-            Name = locale.Name;
-            LangCode = locale.LangCode;
+            if (locale != null)
+            {
+                ID = locale.ID;
+                Name = locale.Name;
+                LangCode = locale.LangCode;
 
-            Icon = (FileViewModel)locale.Icon;
+                Icon = new FileViewModel(locale.Icon);
+            }
         }
-
-        public static explicit operator LocaleViewModel(Locale locale) => new LocaleViewModel(locale);
     }
 }

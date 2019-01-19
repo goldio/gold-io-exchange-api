@@ -14,12 +14,15 @@ namespace Gold.IO.Exchange.API.ViewModels
 
         public CoinViewModel(Coin coin)
         {
-            ID = coin.ID;
-            Name = coin.Name;
-            ShortName = coin.ShortName;
-            IsCrypto = coin.IsCrypto;
+            if (coin != null)
+            {
+                ID = coin.ID;
+                Name = coin.Name;
+                ShortName = coin.ShortName;
+                IsCrypto = coin.IsCrypto;
 
-            Icon = (FileViewModel)coin.Icon;
+                Icon = new FileViewModel(coin.Icon);
+            }
         }
     }
 }

@@ -22,15 +22,18 @@ namespace Gold.IO.Exchange.API.ViewModels
 
         public PersonViewModel(Person person)
         {
-            ID = person.ID;
-            FullName = person.FullName;
-            BirthDate = person.BirthDate;
-            Email = person.Email;
-            PhoneNumber = person.PhoneNumber;
-            Address = person.Address;
+            if (person != null)
+            {
+                ID = person.ID;
+                FullName = person.FullName;
+                BirthDate = person.BirthDate;
+                Email = person.Email;
+                PhoneNumber = person.PhoneNumber;
+                Address = person.Address;
 
-            User = (UserViewModel)person.User;
-            City = (CityViewModel)person.City;
+                User = new UserViewModel(person.User);
+                City = new CityViewModel(person.City);
+            }
         }
 
         public static explicit operator PersonViewModel(Person person) => new PersonViewModel(person);

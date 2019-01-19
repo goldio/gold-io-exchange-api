@@ -86,7 +86,7 @@ namespace Gold.IO.Exchange.API.Controllers
         {
             var user = UserService.GetAll().FirstOrDefault(x => x.Login == User.Identity.Name);
 
-            return Json(new DataResponse<UserViewModel> { Success = true, Message = "OK", Data = (UserViewModel)user });
+            return Json(new DataResponse<UserViewModel> { Success = true, Message = "OK", Data = new UserViewModel(user) });
         }
 
         private ClaimsIdentity GetIdentity(string login, string password)
