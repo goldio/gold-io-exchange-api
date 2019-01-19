@@ -13,6 +13,7 @@ using Gold.IO.Exchange.API.Domain.Enum;
 using Gold.IO.Exchange.API.ViewModels;
 using Gold.IO.Exchange.API.ViewModels.Request;
 using Gold.IO.Exchange.API.ViewModels.Response;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 
@@ -77,6 +78,15 @@ namespace Gold.IO.Exchange.API.Controllers
             var token = GetSecurityToken(identity, user.Role);
 
             return Json(new SignInResponse { Success = true, Message = "OK", SecurityToken = token });
+        }
+
+        [HttpGet("me")]
+        [Authorize]
+        public async Task<IActionResult> GetMe()
+        {
+            var user = UserService.GetAll().FirstOrDefault(x => x.Login == User.Identity.Name);
+
+            return Json(new DataResponse<UserViewModel> { Success = true, Message = "OK", Data = (UserViewModel)user });
         }
 
         private ClaimsIdentity GetIdentity(string login, string password)
