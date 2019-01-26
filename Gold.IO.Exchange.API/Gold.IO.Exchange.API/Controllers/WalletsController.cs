@@ -23,11 +23,11 @@ namespace Gold.IO.Exchange.API.Controllers
             WalletService = walletService;
         }
 
-        [HttpGet("me")]
-        public async Task<IActionResult> GetMeWallets()
-        {
-            var user = UserService.GetAll().FirstOrDefault(x => x.Login == User.Identity.Name);
-            var wallets = WalletService.GetAll().Where(x => x.User == user).ToList();
-        }
+        //[HttpGet("me")]
+        //public async Task<IActionResult> GetMeWallets()
+        //{
+        //    var user = UserService.GetAll().FirstOrDefault(x => x.Login == User.Identity.Name);
+        //    var wallets = WalletService.GetAll().Where(x => x.User == user).ToList();
+        //}
     }
 }
