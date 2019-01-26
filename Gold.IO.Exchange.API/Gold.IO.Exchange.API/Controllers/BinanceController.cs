@@ -19,13 +19,24 @@ namespace Gold.IO.Exchange.API.Controllers
         {
             using (var client = new BinanceClient())
             {
-                client.SetApiCredentials("ryHIGtf0risXmrDLlsorJgtCCp395HGtEWdRIOETMcLJq45AbK5hFx4xDYt8p0aE", "ZOONzdSsQFG1opcll62ueeU8Vn4wInrHTyxUbY3kyk4HjNEHBLBc3Jf4FUcjxx4X");
+                client.SetApiCredentials(
+                    "ryHIGtf0risXmrDLlsorJgtCCp395HGtEWdRIOETMcLJq45AbK5hFx4xDYt8p0aE", 
+                    "ZOONzdSsQFG1opcll62ueeU8Vn4wInrHTyxUbY3kyk4HjNEHBLBc3Jf4FUcjxx4X"
+                );
 
                 var result = client.GetExchangeInfo();
-                if (!result.Success)
-                    return Json(new ResponseModel { Success = result.Success, Message = result.Error.Message });
 
-                return Json(new DataResponse<BinanceSymbol[]> { Success = result.Success, Message = "OK", Data = result.Data.Symbols });
+                if (!result.Success)
+                    return Json(new ResponseModel {
+                        Success = result.Success,
+                        Message = result.Error.Message
+                    });
+
+                return Json(new DataResponse<BinanceSymbol[]> {
+                    Success = result.Success,
+                    Message = "OK",
+                    Data = result.Data.Symbols
+                });
             }
         }
 
@@ -34,13 +45,24 @@ namespace Gold.IO.Exchange.API.Controllers
         {
             using (var client = new BinanceClient())
             {
-                client.SetApiCredentials("ryHIGtf0risXmrDLlsorJgtCCp395HGtEWdRIOETMcLJq45AbK5hFx4xDYt8p0aE", "ZOONzdSsQFG1opcll62ueeU8Vn4wInrHTyxUbY3kyk4HjNEHBLBc3Jf4FUcjxx4X");
+                client.SetApiCredentials(
+                    "ryHIGtf0risXmrDLlsorJgtCCp395HGtEWdRIOETMcLJq45AbK5hFx4xDYt8p0aE", 
+                    "ZOONzdSsQFG1opcll62ueeU8Vn4wInrHTyxUbY3kyk4HjNEHBLBc3Jf4FUcjxx4X"
+                );
                 
                 var result = await client.GetHistoricalTradesAsync(symbol);
-                if (!result.Success)
-                    return Json(new ResponseModel { Success = result.Success, Message = result.Error.Message });
 
-                return Json(new DataResponse<BinanceRecentTrade[]> { Success = result.Success, Message = "OK", Data = result.Data });
+                if (!result.Success)
+                    return Json(new ResponseModel {
+                        Success = result.Success,
+                        Message = result.Error.Message
+                    });
+
+                return Json(new DataResponse<BinanceRecentTrade[]> {
+                    Success = result.Success,
+                    Message = "OK",
+                    Data = result.Data
+                });
             }
         }
 
@@ -49,13 +71,24 @@ namespace Gold.IO.Exchange.API.Controllers
         {
             using (var client = new BinanceClient())
             {
-                client.SetApiCredentials("ryHIGtf0risXmrDLlsorJgtCCp395HGtEWdRIOETMcLJq45AbK5hFx4xDYt8p0aE", "ZOONzdSsQFG1opcll62ueeU8Vn4wInrHTyxUbY3kyk4HjNEHBLBc3Jf4FUcjxx4X");
+                client.SetApiCredentials(
+                    "ryHIGtf0risXmrDLlsorJgtCCp395HGtEWdRIOETMcLJq45AbK5hFx4xDYt8p0aE", 
+                    "ZOONzdSsQFG1opcll62ueeU8Vn4wInrHTyxUbY3kyk4HjNEHBLBc3Jf4FUcjxx4X"
+                );
 
                 var result = await client.GetKlinesAsync(symbol, KlineInterval.OneWeek);
-                if (!result.Success)
-                    return Json(new ResponseModel { Success = result.Success, Message = result.Error.Message });
 
-                return Json(new DataResponse<BinanceKline[]> { Success = result.Success, Message = "OK", Data = result.Data });
+                if (!result.Success)
+                    return Json(new ResponseModel {
+                        Success = result.Success,
+                        Message = result.Error.Message
+                    });
+
+                return Json(new DataResponse<BinanceKline[]> {
+                    Success = result.Success,
+                    Message = "OK",
+                    Data = result.Data
+                });
             }
         }
 
@@ -64,13 +97,24 @@ namespace Gold.IO.Exchange.API.Controllers
         {
             using (var client = new BinanceClient())
             {
-                client.SetApiCredentials("ryHIGtf0risXmrDLlsorJgtCCp395HGtEWdRIOETMcLJq45AbK5hFx4xDYt8p0aE", "ZOONzdSsQFG1opcll62ueeU8Vn4wInrHTyxUbY3kyk4HjNEHBLBc3Jf4FUcjxx4X");
+                client.SetApiCredentials(
+                    "ryHIGtf0risXmrDLlsorJgtCCp395HGtEWdRIOETMcLJq45AbK5hFx4xDYt8p0aE", 
+                    "ZOONzdSsQFG1opcll62ueeU8Vn4wInrHTyxUbY3kyk4HjNEHBLBc3Jf4FUcjxx4X"
+                );
 
                 var result = await client.GetOrderBookAsync(symbol, 1000);
-                if (!result.Success)
-                    return Json(new ResponseModel { Success = result.Success, Message = result.Error.Message });
 
-                return Json(new DataResponse<BinanceOrderBook> { Success = result.Success, Message = "OK", Data = result.Data });
+                if (!result.Success)
+                    return Json(new ResponseModel {
+                        Success = result.Success,
+                        Message = result.Error.Message
+                    });
+
+                return Json(new DataResponse<BinanceOrderBook> {
+                    Success = result.Success,
+                    Message = "OK",
+                    Data = result.Data
+                });
             }
         }
     }

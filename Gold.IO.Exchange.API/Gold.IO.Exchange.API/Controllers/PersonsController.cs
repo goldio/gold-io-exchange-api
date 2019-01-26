@@ -6,6 +6,7 @@ using Gold.IO.Exchange.API.BusinessLogic.Interfaces;
 using Gold.IO.Exchange.API.ViewModels;
 using Gold.IO.Exchange.API.ViewModels.Request;
 using Gold.IO.Exchange.API.ViewModels.Response;
+using Gold.IO.Exchange.API.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -34,17 +35,27 @@ namespace Gold.IO.Exchange.API.Controllers
         [HttpGet("me")]
         public async Task<IActionResult> GetMe()
         {
-            var user = UserService.GetAll().FirstOrDefault(x => x.Login == User.Identity.Name);
-            var person = PersonService.GetAll().FirstOrDefault(x => x.User == user);
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => 
+                    x.Login == User.Identity.Name);
 
-            return Json(new DataResponse<PersonViewModel> { Success = true, Message = "OK", Data = new PersonViewModel(person) });
+            var person = PersonService.GetAll()
+                .FirstOrDefault(x => 
+                    x.User == user);
+
+            return Json(new DataResponse<PersonViewModel> { Data = new PersonViewModel(person) });
         }
 
         [HttpPut("me")]
         public async Task<IActionResult> PutMe([FromBody] UpdatePersonRequest request)
         {
-            var user = UserService.GetAll().FirstOrDefault(x => x.Login == User.Identity.Name);
-            var person = PersonService.GetAll().FirstOrDefault(x => x.User == user);
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => 
+                    x.Login == User.Identity.Name);
+
+            var person = PersonService.GetAll()
+                .FirstOrDefault(x => 
+                    x.User == user);
 
             if (request.FullName != null)
                 person.FullName = request.FullName;
@@ -66,7 +77,7 @@ namespace Gold.IO.Exchange.API.Controllers
 
             PersonService.Update(person);
 
-            return Json(new DataResponse<PersonViewModel> { Success = true, Message = "OK", Data = new PersonViewModel(person) });
+            return Json(new DataResponse<PersonViewModel> { Data = new PersonViewModel(person) });
         }
     }
 }

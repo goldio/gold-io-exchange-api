@@ -37,13 +37,25 @@ namespace Gold.IO.Exchange.API.Controllers
         [HttpPost("sign-up")]
         public async Task<IActionResult> UserSignUp([FromBody] SignUpRequest request)
         {
-            var user = UserService.GetAll().FirstOrDefault(x => x.Login == request.Email);
-            if (user != null)
-                return Json(new ResponseModel { Success = false, Message = "Email already used." });
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => 
+                    x.Login == request.Email);
 
-            var person = PersonService.GetAll().FirstOrDefault(x => x.Email == request.Email);
+            if (user != null)
+                return Json(new ResponseModel {
+                    Success = false,
+                    Message = "Email already used."
+                });
+
+            var person = PersonService.GetAll()
+                .FirstOrDefault(x => 
+                    x.Email == request.Email);
+
             if (person != null)
-                return Json(new ResponseModel { Success = false, Message = "Email already used." });
+                return Json(new ResponseModel {
+                    Success = false,
+                    Message = "Email already used."
+                });
 
             user = new User
             {
@@ -64,34 +76,47 @@ namespace Gold.IO.Exchange.API.Controllers
 
             PersonService.Create(person);
 
-            return Json(new ResponseModel { Success = true, Message = "OK" });
+            return Json(new ResponseModel());
         }
 
         [HttpPost("sign-in")]
         public async Task<IActionResult> UserSignIn([FromBody] SignInRequest request)
         {
-            var user = UserService.GetAll().FirstOrDefault(x => x.Login == request.Login && x.Password == CreateMD5(request.Password));
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => 
+                    x.Login == request.Login && 
+                    x.Password == CreateMD5(request.Password));
+
             if (user == null)
-                return Json(new ResponseModel { Success = false, Message = "Wrong email or password" });
+                return Json(new ResponseModel {
+                    Success = false,
+                    Message = "Wrong email or password"
+                });
 
             var identity = GetIdentity(request.Login, CreateMD5(request.Password));
             var token = GetSecurityToken(identity, user.Role);
 
-            return Json(new SignInResponse { Success = true, Message = "OK", SecurityToken = token });
+            return Json(new SignInResponse { SecurityToken = token });
         }
 
         [HttpGet("me")]
         [Authorize]
         public async Task<IActionResult> GetMe()
         {
-            var user = UserService.GetAll().FirstOrDefault(x => x.Login == User.Identity.Name);
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => 
+                    x.Login == User.Identity.Name);
 
-            return Json(new DataResponse<UserViewModel> { Success = true, Message = "OK", Data = new UserViewModel(user) });
+            return Json(new DataResponse<UserViewModel> { Data = new UserViewModel(user) });
         }
 
         private ClaimsIdentity GetIdentity(string login, string password)
         {
-            var user = UserService.GetAll().FirstOrDefault(x => x.Login == login && x.Password == password);
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => 
+                    x.Login == login && 
+                    x.Password == password);
+
             if (user == null)
                 return null;
 
@@ -101,7 +126,7 @@ namespace Gold.IO.Exchange.API.Controllers
                 new Claim(ClaimsIdentity.DefaultRoleClaimType, user.Role.ToString())
             };
 
-            ClaimsIdentity claimsIdentity = new ClaimsIdentity(
+            var claimsIdentity = new ClaimsIdentity(
                 claims, "Token", ClaimsIdentity.DefaultNameClaimType,
                 ClaimsIdentity.DefaultRoleClaimType);
 
@@ -119,7 +144,11 @@ namespace Gold.IO.Exchange.API.Controllers
                     notBefore: now,
                     claims: identity.Claims,
                     expires: expires,
-                    signingCredentials: new SigningCredentials(AuthOptions.GetSymmetricSecurityKey(), SecurityAlgorithms.HmacSha256));
+                    signingCredentials: new SigningCredentials(
+                        AuthOptions.GetSymmetricSecurityKey(), 
+                        SecurityAlgorithms.HmacSha256)
+                    );
+
             var encodedJwt = new JwtSecurityTokenHandler().WriteToken(jwt);
 
             var token = new SecurityTokenViewModel()
@@ -135,17 +164,16 @@ namespace Gold.IO.Exchange.API.Controllers
         private string CreateMD5(string input)
         {
             // Use input string to calculate MD5 hash
-            using (MD5 md5 = System.Security.Cryptography.MD5.Create())
+            using (var md5 = MD5.Create())
             {
-                byte[] inputBytes = System.Text.Encoding.ASCII.GetBytes(input);
+                byte[] inputBytes = Encoding.ASCII.GetBytes(input);
                 byte[] hashBytes = md5.ComputeHash(inputBytes);
 
                 // Convert the byte array to hexadecimal string
-                StringBuilder sb = new StringBuilder();
+                var sb = new StringBuilder();
                 for (int i = 0; i < hashBytes.Length; i++)
-                {
                     sb.Append(hashBytes[i].ToString("X2"));
-                }
+
                 return sb.ToString();
             }
         }

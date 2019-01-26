@@ -7,7 +7,7 @@ namespace Gold.IO.Exchange.API.ViewModels.Response
 {
     public class ResponseModel
     {
-        public bool Success { get; set; }
-        public string Message { get; set; }
+        public bool Success { get; set; } = true;
+        public string Message { get; set; } = "OK";
     }
 }
