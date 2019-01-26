@@ -46,8 +46,8 @@ namespace Gold.IO.Exchange.API.Controllers
             return Json(new DataResponse<PersonViewModel> { Data = new PersonViewModel(person) });
         }
 
-        [HttpPut("me")]
-        public async Task<IActionResult> PutMe([FromBody] UpdatePersonRequest request)
+        [HttpPost("me/update")]
+        public async Task<IActionResult> UpdateMe([FromBody] UpdatePersonRequest request)
         {
             var user = UserService.GetAll()
                 .FirstOrDefault(x => 
