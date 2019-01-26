@@ -1,8 +1,4 @@
 ﻿using Gold.IO.Exchange.API.Domain;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Gold.IO.Exchange.API.ViewModels
 {
@@ -23,6 +19,8 @@ namespace Gold.IO.Exchange.API.ViewModels
             Coin = new CoinViewModel(wallet.Coin);
             User = new UserViewModel(wallet.User);
             Balance = wallet.Balance;
+            OnOrders = 0;
+            VTCValue = 0;
         }
 
         public WalletViewModel(Wallet wallet, double onOrders)
@@ -32,6 +30,7 @@ namespace Gold.IO.Exchange.API.ViewModels
             User = new UserViewModel(wallet.User);
             Balance = wallet.Balance;
             OnOrders = onOrders;
+            VTCValue = 0;
         }
 
         public WalletViewModel(Wallet wallet, double onOrders, double vtcValue)
