@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Gold.IO.Exchange.API.Domain\Gold.IO.Exchange.API.Domain.csproj" />
     <ProjectReference Include="..\Gold.IO.Exchange.API.Services\Gold.IO.Exchange.API.BusinessLogic.csproj" />
   </ItemGroup>
 

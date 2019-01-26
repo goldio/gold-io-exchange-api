@@ -25,13 +25,19 @@ namespace Gold.IO.Exchange.API.Controllers
     {
         private IUserService UserService { get; set; }
         private IPersonService PersonService { get; set; }
+        private ICoinService CoinService { get; set; }
+        private IWalletService WalletService { get; set; }
 
         public UsersController([FromServices]
             IUserService userService,
-            IPersonService personService)
+            IPersonService personService,
+            ICoinService coinService,
+            IWalletService walletService)
         {
             UserService = userService;
             PersonService = personService;
+            CoinService = coinService;
+            WalletService = walletService;
         }
 
         [HttpPost("sign-up")]
@@ -75,6 +81,19 @@ namespace Gold.IO.Exchange.API.Controllers
             };
 
             PersonService.Create(person);
+
+            var coins = CoinService.GetAll().ToList();
+            foreach (var coin in coins)
+            {
+                var wallet = new Wallet
+                {
+                    Balance = 0,
+                    Coin = coin,
+                    User = user
+                };
+
+                WalletService.Create(wallet);
+            }
 
             return Json(new ResponseModel());
         }
