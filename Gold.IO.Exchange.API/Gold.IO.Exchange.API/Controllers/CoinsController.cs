@@ -53,7 +53,7 @@ namespace Gold.IO.Exchange.API.Controllers
             if (coins == null || coins.Count == 0)
                 return Json(new ResponseModel { Success = false, Message = "Coins list is empty" });
 
-            var pairs = new List<PairViewModel>();
+            var pairs = new HashSet<PairViewModel>();
             for (var i = 0; i < coins.Count; i++)
             {
                 var list = coins.Skip(i).ToList();
@@ -67,7 +67,7 @@ namespace Gold.IO.Exchange.API.Controllers
                 
             }
 
-            return Json(new DataResponse<HashSet<PairViewModel>> { Data = new HashSet<PairViewModel>(pairs) });
+            return Json(new DataResponse<HashSet<PairViewModel>> { Data = pairs });
         }
     }
 }
