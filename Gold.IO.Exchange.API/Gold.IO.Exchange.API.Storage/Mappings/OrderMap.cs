@@ -13,7 +13,7 @@ namespace Gold.IO.Exchange.API.Storage.Mappings
             Id(u => u.ID, "id");
 
             References(e => e.BaseAsset, "id_base");
-            References(e => e.BaseAsset, "id_quote");
+            References(e => e.QuoteAsset, "id_quote");
 
             Map(u => u.Amount, "amount");
             Map(u => u.Price, "price");
