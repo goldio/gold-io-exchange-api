@@ -42,5 +42,32 @@ namespace Gold.IO.Exchange.API.Controllers
 
             return Json(new DataResponse<CoinViewModel> { Data = new CoinViewModel(coin) });
         }
+
+        [HttpGet("pairs")]
+        public async Task<IActionResult> GetPairs()
+        {
+            var coins = CoinService.GetAll()
+                .Select(x => new CoinViewModel(x))
+                .ToList();
+
+            if (coins == null || coins.Count == 0)
+                return Json(new ResponseModel { Success = false, Message = "Coins list is empty" });
+
+            var pairs = new List<PairViewModel>();
+            for (var i = 0; i < coins.Count; i++)
+            {
+                var list = coins.Skip(i).ToList();
+                for (var j = 0; j < list.Count; j++)
+                {
+                    if (j != list.Count - 1)
+                    {
+                        pairs.Add(new PairViewModel(list[j], list[j + 1]));
+                    }
+                }
+                
+            }
+
+            return Json(new DataResponse<HashSet<PairViewModel>> { Data = new HashSet<PairViewModel>(pairs) });
+        }
     }
 }
