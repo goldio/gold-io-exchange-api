@@ -1,9 +1,6 @@
 ﻿using FluentNHibernate.Mapping;
 using Gold.IO.Exchange.API.Domain;
 using Gold.IO.Exchange.API.Domain.Enum;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Gold.IO.Exchange.API.Storage.Mappings
 {
