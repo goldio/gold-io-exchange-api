@@ -19,6 +19,7 @@ namespace Gold.IO.Exchange.API.Storage.Mappings
             Map(u => u.Price, "price");
             Map(u => u.Type, "type").CustomType<OrderType>();
             Map(u => u.Status, "status").CustomType<OrderStatus>();
+            Map(u => u.Time, "time");
             Map(u => u.Deleted, "deleted").Not.Nullable();
         }
     }

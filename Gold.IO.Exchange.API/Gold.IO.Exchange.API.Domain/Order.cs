@@ -1,4 +1,5 @@
 ﻿using Gold.IO.Exchange.API.Domain.Enum;
+using System;
 
 namespace Gold.IO.Exchange.API.Domain
 {
@@ -10,6 +11,7 @@ namespace Gold.IO.Exchange.API.Domain
         public virtual double Price { get; set; }
         public virtual OrderType Type { get; set; }
         public virtual OrderStatus Status { get; set; }
+        public virtual DateTime Time { get; set; }
         public virtual bool Deleted { get; set; }
     }
 }
