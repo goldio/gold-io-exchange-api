@@ -1,4 +1,5 @@
-﻿using Gold.IO.Exchange.API.Domain.Enum;
+﻿using Gold.IO.Exchange.API.Domain;
+using Gold.IO.Exchange.API.Domain.Enum;
 
 namespace Gold.IO.Exchange.API.ViewModels
 {
@@ -11,5 +12,18 @@ namespace Gold.IO.Exchange.API.ViewModels
         public double Price { get; set; }
         public OrderType Type { get; set; }
         public OrderStatus Status { get; set; }
+
+        public OrderViewModel() { }
+
+        public OrderViewModel(Order order)
+        {
+            ID = order.ID;
+            BaseAsset = new CoinViewModel(order.BaseAsset);
+            QuoteAsset = new CoinViewModel(order.QuoteAsset);
+            Amount = order.Amount;
+            Price = order.Price;
+            Type = order.Type;
+            Status = order.Status;
+        }
     }
 }
