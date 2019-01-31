@@ -125,6 +125,13 @@ namespace Gold.IO.Exchange.API.Controllers
                     Message = "Wrong email or password"
                 });
 
+            if (!user.IsActive)
+                return Json(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Your account is inactive"
+                });
+
             var identity = GetIdentity(request.Login, CreateMD5(request.Password));
             var token = GetSecurityToken(identity, user.Role);
 
