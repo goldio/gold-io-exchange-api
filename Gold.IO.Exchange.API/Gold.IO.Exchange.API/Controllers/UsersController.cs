@@ -151,7 +151,7 @@ namespace Gold.IO.Exchange.API.Controllers
             activationKey.User.IsActive = true;
             UserService.Update(activationKey.User);
 
-            return Json(new ResponseModel());
+            return Json(new ResponseModel { Message = "Activation was successful!" });
         }
 
         [HttpPost("recovery")]
