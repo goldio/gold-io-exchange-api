@@ -10,6 +10,7 @@ namespace Gold.IO.Exchange.API.ViewModels
         public string Login { get; set; }
         public DateTime RegistrationDate { get; set; }
         public UserRole Role { get; set; }
+        public bool IsActive { get; set; }
 
         public UserViewModel() { }
 
@@ -21,6 +22,7 @@ namespace Gold.IO.Exchange.API.ViewModels
                 Login = user.Login;
                 RegistrationDate = user.RegistrationDate;
                 Role = user.Role;
+                IsActive = user.IsActive;
             }
         }
     }

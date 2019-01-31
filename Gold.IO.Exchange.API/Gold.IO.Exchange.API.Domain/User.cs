@@ -9,6 +9,7 @@ namespace Gold.IO.Exchange.API.Domain
         public virtual string Password { get; set; }
         public virtual DateTime RegistrationDate { get; set; }
         public virtual UserRole Role { get; set; }
+        public virtual bool IsActive { get; set; }
         public virtual bool Deleted { get; set; }
     }
 }

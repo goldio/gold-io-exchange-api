@@ -24,17 +24,20 @@ namespace Gold.IO.Exchange.API.Controllers
     public class UsersController : Controller
     {
         private IUserService UserService { get; set; }
+        private IUserKeyService UserKeyService { get; set; }
         private IPersonService PersonService { get; set; }
         private ICoinService CoinService { get; set; }
         private IWalletService WalletService { get; set; }
 
         public UsersController([FromServices]
             IUserService userService,
+            IUserKeyService userKeyService,
             IPersonService personService,
             ICoinService coinService,
             IWalletService walletService)
         {
             UserService = userService;
+            UserKeyService = userKeyService;
             PersonService = personService;
             CoinService = coinService;
             WalletService = walletService;
@@ -64,7 +67,8 @@ namespace Gold.IO.Exchange.API.Controllers
                 Login = request.Email,
                 Password = CreateMD5(request.Password),
                 RegistrationDate = DateTime.UtcNow,
-                Role = UserRole.User
+                Role = UserRole.User,
+                IsActive = false
             };
 
             UserService.Create(user);
