@@ -25,6 +25,7 @@ namespace Gold.IO.Exchange.API.Controllers
     {
         private IUserService UserService { get; set; }
         private IUserKeyService UserKeyService { get; set; }
+        private IEmailService EmailService { get; set; }
         private IPersonService PersonService { get; set; }
         private ICoinService CoinService { get; set; }
         private IWalletService WalletService { get; set; }
@@ -32,12 +33,14 @@ namespace Gold.IO.Exchange.API.Controllers
         public UsersController([FromServices]
             IUserService userService,
             IUserKeyService userKeyService,
+            IEmailService emailService,
             IPersonService personService,
             ICoinService coinService,
             IWalletService walletService)
         {
             UserService = userService;
             UserKeyService = userKeyService;
+            EmailService = emailService;
             PersonService = personService;
             CoinService = coinService;
             WalletService = walletService;
@@ -73,6 +76,15 @@ namespace Gold.IO.Exchange.API.Controllers
 
             UserService.Create(user);
 
+            var activationKey = new UserKey
+            {
+                KeyValue = CreateMD5($"{user.Login}_{DateTime.UtcNow}"),
+                Type = UserKeyType.Activation,
+                User = user
+            };
+
+            UserKeyService.Create(activationKey);
+
             person = new Person
             {
                 FullName = request.FullName,
@@ -94,6 +106,8 @@ namespace Gold.IO.Exchange.API.Controllers
 
                 WalletService.Create(wallet);
             }
+
+            await EmailService.SendActivationMessage(user.Login, activationKey.KeyValue);
 
             return Json(new ResponseModel());
         }
@@ -118,9 +132,19 @@ namespace Gold.IO.Exchange.API.Controllers
         }
 
         [HttpPost("activation")]
-        public async Task<IActionResult> UserActivation()
+        public async Task<IActionResult> UserActivation([FromBody] ActivationRequest request)
         {
-            return Ok();
+            var activationKey = UserKeyService.GetAll().FirstOrDefault(x => x.KeyValue == request.Key);
+            if (activationKey == null || activationKey.Type != UserKeyType.Activation || activationKey.ActivationTime != DateTime.MinValue)
+                return Json(new ResponseModel { Success = false, Message = "Key is invalid" });
+
+            activationKey.ActivationTime = DateTime.UtcNow;
+            UserKeyService.Update(activationKey);
+
+            activationKey.User.IsActive = true;
+            UserService.Update(activationKey.User);
+
+            return Json(new ResponseModel());
         }
 
         [HttpGet("me")]
