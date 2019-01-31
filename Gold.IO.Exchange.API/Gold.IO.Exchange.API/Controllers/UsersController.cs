@@ -154,6 +154,38 @@ namespace Gold.IO.Exchange.API.Controllers
             return Json(new ResponseModel());
         }
 
+        [HttpPost("recovery")]
+        public async Task<IActionResult> UserRecovery([FromBody] RecoveryRequest request)
+        {
+            var user = UserService.GetAll().FirstOrDefault(x => x.Login == request.Login);
+            if (user == null)
+                return Json(new ResponseModel
+                {
+                    Success = false,
+                    Message = "User not found"
+                });
+
+            if (!user.IsActive)
+                return Json(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Activate your account first"
+                });
+
+            var recoveryKey = new UserKey
+            {
+                KeyValue = CreateMD5($"{user.Login}_recovery_{DateTime.UtcNow}"),
+                Type = UserKeyType.Recovery,
+                User = user
+            };
+
+            UserKeyService.Create(recoveryKey);
+
+            await EmailService.SendRecoveryMessage(user.Login, recoveryKey.KeyValue);
+
+            return Json(new ResponseModel());
+        }
+
         [HttpGet("me")]
         [Authorize]
         public async Task<IActionResult> GetMe()
