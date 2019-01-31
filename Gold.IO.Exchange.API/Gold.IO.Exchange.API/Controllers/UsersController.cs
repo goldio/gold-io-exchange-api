@@ -43,9 +43,7 @@ namespace Gold.IO.Exchange.API.Controllers
         [HttpPost("sign-up")]
         public async Task<IActionResult> UserSignUp([FromBody] SignUpRequest request)
         {
-            var user = UserService.GetAll()
-                .FirstOrDefault(x => 
-                    x.Login == request.Email);
+            var user = UserService.GetAll().FirstOrDefault(x => x.Login == request.Email);
 
             if (user != null)
                 return Json(new ResponseModel {
@@ -53,9 +51,7 @@ namespace Gold.IO.Exchange.API.Controllers
                     Message = "Email already used."
                 });
 
-            var person = PersonService.GetAll()
-                .FirstOrDefault(x => 
-                    x.Email == request.Email);
+            var person = PersonService.GetAll().FirstOrDefault(x => x.Email == request.Email);
 
             if (person != null)
                 return Json(new ResponseModel {
@@ -101,10 +97,9 @@ namespace Gold.IO.Exchange.API.Controllers
         [HttpPost("sign-in")]
         public async Task<IActionResult> UserSignIn([FromBody] SignInRequest request)
         {
-            var user = UserService.GetAll()
-                .FirstOrDefault(x => 
-                    x.Login == request.Login && 
-                    x.Password == CreateMD5(request.Password));
+            var user = UserService.GetAll().FirstOrDefault(x => 
+                x.Login == request.Login && 
+                x.Password == CreateMD5(request.Password));
 
             if (user == null)
                 return Json(new ResponseModel {
@@ -118,23 +113,26 @@ namespace Gold.IO.Exchange.API.Controllers
             return Json(new SignInResponse { SecurityToken = token });
         }
 
+        [HttpPost("activation")]
+        public async Task<IActionResult> UserActivation()
+        {
+            return Ok();
+        }
+
         [HttpGet("me")]
         [Authorize]
         public async Task<IActionResult> GetMe()
         {
-            var user = UserService.GetAll()
-                .FirstOrDefault(x => 
-                    x.Login == User.Identity.Name);
+            var user = UserService.GetAll().FirstOrDefault(x => x.Login == User.Identity.Name);
 
             return Json(new DataResponse<UserViewModel> { Data = new UserViewModel(user) });
         }
 
         private ClaimsIdentity GetIdentity(string login, string password)
         {
-            var user = UserService.GetAll()
-                .FirstOrDefault(x => 
-                    x.Login == login && 
-                    x.Password == password);
+            var user = UserService.GetAll().FirstOrDefault(x => 
+                x.Login == login && 
+                x.Password == password);
 
             if (user == null)
                 return null;
