@@ -1,5 +1,7 @@
 ﻿using Gold.IO.Exchange.API.BusinessLogic;
+using Gold.IO.Exchange.API.BusinessLogic.Interfaces;
 using Gold.IO.Exchange.API.Storage;
+using Gold.IO.Exchange.API.WebSocketManager;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -7,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using System;
 
 namespace Gold.IO.Exchange.API
 {
@@ -44,10 +47,13 @@ namespace Gold.IO.Exchange.API
                         ValidateIssuerSigningKey = true
                     };
                 });
+
+            services.AddWebSocketManager();
+            services.AddScoped<TradeManager.TradeManager>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IServiceProvider serviceProvider)
         {
             if (env.IsDevelopment())
             {
@@ -64,6 +70,15 @@ namespace Gold.IO.Exchange.API
 
             //app.UseHttpsRedirection();
             app.UseMvc();
+
+            app.UseWebSockets();
+
+            var notifMessageHandler = serviceProvider.GetService<NotificationsMessageHandler>();
+            notifMessageHandler.SetCurrencyService(serviceProvider.GetService<IOrderService>());
+            app.MapWebSocketManager("/notifications", notifMessageHandler);
+
+            var tradeManager = serviceProvider.GetService<TradeManager.TradeManager>();
+            tradeManager.SetServices(serviceProvider.GetService<IOrderService>());
         }
     }
 }

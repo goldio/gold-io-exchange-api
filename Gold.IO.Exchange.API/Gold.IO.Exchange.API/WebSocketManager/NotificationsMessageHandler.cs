@@ -1,4 +1,6 @@
 ﻿using Binance.Net;
+using Gold.IO.Exchange.API.BusinessLogic.Interfaces;
+using Gold.IO.Exchange.API.Domain.Enum;
 using Gold.IO.Exchange.API.ViewModels;
 using Newtonsoft.Json;
 using System;
@@ -14,6 +16,7 @@ namespace Gold.IO.Exchange.API.WebSocketManager
     public class NotificationsMessageHandler : WebSocketHandler
     {
         private BinanceSocketClient BinanceSocketClient;
+        private IOrderService OrderService { get; set; }
 
         public List<SocketUser> socketUsers = new List<SocketUser>();
 
@@ -21,6 +24,17 @@ namespace Gold.IO.Exchange.API.WebSocketManager
         {
             BinanceSocketClient = new BinanceSocketClient();
             BinanceSocketClient.SetApiCredentials("ryHIGtf0risXmrDLlsorJgtCCp395HGtEWdRIOETMcLJq45AbK5hFx4xDYt8p0aE", "ZOONzdSsQFG1opcll62ueeU8Vn4wInrHTyxUbY3kyk4HjNEHBLBc3Jf4FUcjxx4X");
+
+            var myTimer = new Timer();
+            myTimer.Elapsed += new ElapsedEventHandler(DisplayTimeEvent);
+            myTimer.Interval = 3000;
+            myTimer.Start();
+        }
+
+        public void SetCurrencyService(IOrderService orderService)
+        {
+            if (OrderService == null)
+                OrderService = orderService;
         }
 
         public override async Task ReceiveAsync(WebSocket socket, WebSocketReceiveResult result, byte[] buffer)
@@ -31,22 +45,21 @@ namespace Gold.IO.Exchange.API.WebSocketManager
             try
             {
                 var recieveJSON = JsonConvert.DeserializeObject<SocketJSON>(message);
-                if (recieveJSON.Type.Equals(SubscribeType.Depth))
+                var existSocketUser = socketUsers.FirstOrDefault(x => x.ID.Equals(socketId));
+
+                if (existSocketUser != null)
                 {
-                    var existSocketUser = socketUsers.FirstOrDefault(x => x.ID.Equals(socketId));
-                    if (existSocketUser != null)
+                    existSocketUser.Type = SubscribeType.Depth;
+                    existSocketUser.Pair = recieveJSON.Message;
+                }
+                else
+                {
+                    socketUsers.Add(new SocketUser
                     {
-                        existSocketUser.Type = SubscribeType.Depth;
-                        existSocketUser.Pair = recieveJSON.Message;
-                    }
-                    else
-                    {
-                        socketUsers.Add(new SocketUser {
-                            ID = socketId,
-                            Type = SubscribeType.Depth,
-                            Pair = recieveJSON.Message
-                        });
-                    }
+                        ID = socketId,
+                        Type = SubscribeType.Depth,
+                        Pair = recieveJSON.Message
+                    });
                 }
             }
             catch (Exception ex)
@@ -70,35 +83,9 @@ namespace Gold.IO.Exchange.API.WebSocketManager
 
         private async void SendCurrencyForUser(WebSocket socket)
         {
-            //var settings = GetSettings();
-
-            //if (settings.RateType == RateType.Fixed)
-            //{
-            //    var data = new
-            //    {
-            //        sell = settings.RateSell,
-            //        buy = settings.RateBuy
-            //    };
-
-            //    var result = JsonConvert.SerializeObject(new SocketJSON { Type = "updateCurrency", Message = JsonConvert.SerializeObject(data) });
-            //    await SendMessageAsync(socket, result);
-
-            //    return;
-            //}
-
-            //if (settings.RateType == RateType.Market)
-            //{
-            //    var data = new
-            //    {
-            //        sell = _blockchainCurrencyService.GetCurrency(Domain.Enum.CurrencyTypeEnum.RUB).Sell * (1 - settings.Commission),
-            //        buy = _blockchainCurrencyService.GetCurrency(Domain.Enum.CurrencyTypeEnum.RUB).Buy * (1 + settings.Commission)
-            //    };
-
-            //    var answer = JsonConvert.SerializeObject(new SocketJSON { Type = "updateCurrency", Message = JsonConvert.SerializeObject(data) });
-            //    await SendMessageAsync(socket, answer);
-
-            //    return;
-            //}
+            var orders = OrderService.GetAll().Where(x => x.Status == OrderStatus.Open).ToList();
+            var result = JsonConvert.SerializeObject(new SocketJSON { Message = JsonConvert.SerializeObject(orders) });
+            await SendMessageAsync(socket, result);
 
             return;
         }
@@ -108,9 +95,6 @@ namespace Gold.IO.Exchange.API.WebSocketManager
 
     public class SocketJSON
     {
-        [JsonProperty("type")]
-        public SubscribeType Type { get; set; }
-
         [JsonProperty("message")]
         public string Message { get; set; }
     }

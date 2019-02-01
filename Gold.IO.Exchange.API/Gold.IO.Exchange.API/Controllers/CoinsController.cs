@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Gold.IO.Exchange.API.BusinessLogic.Interfaces;
+using Gold.IO.Exchange.API.Domain.Enum;
 using Gold.IO.Exchange.API.ViewModels;
 using Gold.IO.Exchange.API.ViewModels.Response;
 using Microsoft.AspNetCore.Mvc;
@@ -13,11 +14,14 @@ namespace Gold.IO.Exchange.API.Controllers
     public class CoinsController : Controller
     {
         private ICoinService CoinService { get; set; }
+        private IOrderService OrderService { get; set; }
 
         public CoinsController([FromServices]
-            ICoinService coinService)
+            ICoinService coinService,
+            IOrderService orderService)
         {
             CoinService = coinService;
+            OrderService = orderService;
         }
 
         [HttpGet]
@@ -69,5 +73,36 @@ namespace Gold.IO.Exchange.API.Controllers
 
             return Json(new DataResponse<HashSet<PairViewModel>> { Data = pairs });
         }
+
+        [HttpGet("price/{baseAsset}/{quoteAsset}")]
+        public async Task<IActionResult> GetPriceByPair(string baseAsset, string quoteAsset)
+        {
+            var baseAssetCoin = CoinService.GetAll().FirstOrDefault(x => x.ShortName == baseAsset);
+            if (baseAssetCoin == null)
+                return Json(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Base asset not found"
+                });
+
+            var quoteAssetCoin = CoinService.GetAll().FirstOrDefault(x => x.ShortName == quoteAsset);
+            if (quoteAssetCoin == null)
+                return Json(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Quote asset not found"
+                });
+
+            var priceOrder = OrderService.GetAll().FirstOrDefault(x => x.Status == OrderStatus.Closed);
+            if (priceOrder == null)
+                return Json(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Closed orders not found"
+                });
+
+            return Json(new DataResponse<double> { Data = priceOrder.Price });
+        }
+
     }
 }

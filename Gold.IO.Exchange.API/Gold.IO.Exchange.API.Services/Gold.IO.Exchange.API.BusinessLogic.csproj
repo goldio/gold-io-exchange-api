@@ -7,6 +7,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Gold.IO.Exchange.API.Domain\Gold.IO.Exchange.API.Domain.csproj" />
     <ProjectReference Include="..\Gold.IO.Exchange.API.Storage\Gold.IO.Exchange.API.Storage.csproj" />
+    <ProjectReference Include="..\Gold.IO.Exchange.API.Utils\Gold.IO.Exchange.API.Utils.csproj" />
   </ItemGroup>
 
   <ItemGroup>

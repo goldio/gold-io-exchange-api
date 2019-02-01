@@ -3,7 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Gold.IO.Exchange.API.BusinessLogic.Interfaces;
+using Gold.IO.Exchange.API.Domain;
+using Gold.IO.Exchange.API.Domain.Enum;
 using Gold.IO.Exchange.API.ViewModels;
+using Gold.IO.Exchange.API.ViewModels.Request;
 using Gold.IO.Exchange.API.ViewModels.Response;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -16,11 +19,17 @@ namespace Gold.IO.Exchange.API.Controllers
     public class OrdersController : Controller
     {
         private IOrderService OrderService { get; set; }
+        private ICoinService CoinService { get; set; }
+        private IUserService UserService { get; set; }
 
         public OrdersController([FromServices]
-            IOrderService orderService)
+            IOrderService orderService,
+            ICoinService coinService,
+            IUserService userService)
         {
             OrderService = orderService;
+            CoinService = coinService;
+            UserService = userService;
         }
 
         [HttpGet]
@@ -45,12 +54,66 @@ namespace Gold.IO.Exchange.API.Controllers
             return Json(new DataResponse<OrderViewModel> { Data = new OrderViewModel(order) });
         }
 
-        [HttpGet("symbol/{baseAsset}/{quoteAsset}")]
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> CreateOrder([FromBody] CreateOrderRequest request)
+        {
+            var baseAssetCoin = CoinService.GetAll().FirstOrDefault(x => x.ShortName == request.BaseAsset);
+            if (baseAssetCoin == null)
+                return Json(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Base asset not found"
+                });
+
+            var quoteAssetCoin = CoinService.GetAll().FirstOrDefault(x => x.ShortName == request.QuoteAsset);
+            if (quoteAssetCoin == null)
+                return Json(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Quote asset not found"
+                });
+
+            var user = UserService.GetAll().FirstOrDefault(x => x.Login == User.Identity.Name);
+
+            var order = new Order
+            {
+                User = user,
+                BaseAsset = baseAssetCoin,
+                QuoteAsset = quoteAssetCoin,
+                Amount = request.Amount,
+                Balance = request.Amount,
+                Price = request.Price,
+                Status = OrderStatus.Open,
+                Type = request.Type,
+                Time = DateTime.UtcNow
+            };
+
+            OrderService.Create(order);
+
+            return Json(new ResponseModel());
+        }
+
+        [HttpGet("symbol/{baseAsset}/{quoteAsset}/trades")]
         public async Task<IActionResult> GetOrdersBySymbol(string baseAsset, string quoteAsset)
         {
             var orders = OrderService.GetAll()
                 .Where(x => x.BaseAsset.ShortName.Equals(baseAsset) &&
-                    x.QuoteAsset.ShortName.Equals(quoteAsset))
+                    x.QuoteAsset.ShortName.Equals(quoteAsset) &&
+                    x.Status == OrderStatus.Closed)
+                .Select(x => new OrderViewModel(x))
+                .ToList();
+
+            return Json(new DataResponse<List<OrderViewModel>> { Data = orders });
+        }
+
+        [HttpGet("symbol/{baseAsset}/{quoteAsset}/book")]
+        public async Task<IActionResult> GetOrderBookBySymbol(string baseAsset, string quoteAsset)
+        {
+            var orders = OrderService.GetAll()
+                .Where(x => x.BaseAsset.ShortName.Equals(baseAsset) &&
+                    x.QuoteAsset.ShortName.Equals(quoteAsset) &&
+                    x.Status == OrderStatus.Open)
                 .Select(x => new OrderViewModel(x))
                 .ToList();
 
