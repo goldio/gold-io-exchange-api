@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Gold.IO.Exchange.API.BusinessLogic.Interfaces;
 using Gold.IO.Exchange.API.Domain;
+using Gold.IO.Exchange.API.Domain.Coin;
 using Gold.IO.Exchange.API.Domain.Enum;
 using Gold.IO.Exchange.API.ViewModels;
 using Gold.IO.Exchange.API.ViewModels.Request;

@@ -1,4 +1,5 @@
 ﻿using Gold.IO.Exchange.API.Domain;
+using Gold.IO.Exchange.API.Domain.Coin;
 using Gold.IO.Exchange.API.Domain.Enum;
 using System;
 

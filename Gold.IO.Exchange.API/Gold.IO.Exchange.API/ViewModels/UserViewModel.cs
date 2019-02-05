@@ -1,5 +1,6 @@
 ﻿using Gold.IO.Exchange.API.Domain;
 using Gold.IO.Exchange.API.Domain.Enum;
+using Gold.IO.Exchange.API.Domain.User;
 using System;
 
 namespace Gold.IO.Exchange.API.ViewModels

@@ -1,4 +1,5 @@
 ﻿using Gold.IO.Exchange.API.Domain;
+using Gold.IO.Exchange.API.Domain.User;
 using System;
 using System.Collections.Generic;
 using System.Text;
