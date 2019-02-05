@@ -20,7 +20,8 @@ namespace Gold.IO.Exchange.API.BusinessLogic
                 .AddScoped<IOrderService, OrderService>()
                 .AddScoped<IUserKeyService, UserKeyService>()
                 .AddScoped<IEmailService, EmailService>()
-                .AddScoped<IUserNotificationsService, UserNotificationsService>();
+                .AddScoped<IUserNotificationsService, UserNotificationsService>()
+                .AddScoped<IApiKeyService, ApiKeyService>();
         }
     }
 }
