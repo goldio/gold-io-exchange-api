@@ -31,6 +31,7 @@ namespace Gold.IO.Exchange.API.Controllers
         private IPersonService PersonService { get; set; }
         private ICoinService CoinService { get; set; }
         private IWalletService WalletService { get; set; }
+        private IUserNotificationsService UserNotificationsService { get; set; }
 
         public UsersController([FromServices]
             IUserService userService,
@@ -38,7 +39,8 @@ namespace Gold.IO.Exchange.API.Controllers
             IEmailService emailService,
             IPersonService personService,
             ICoinService coinService,
-            IWalletService walletService)
+            IWalletService walletService,
+            IUserNotificationsService userNotificationsService)
         {
             UserService = userService;
             UserKeyService = userKeyService;
@@ -46,6 +48,7 @@ namespace Gold.IO.Exchange.API.Controllers
             PersonService = personService;
             CoinService = coinService;
             WalletService = walletService;
+            UserNotificationsService = userNotificationsService;
         }
 
         [HttpPost("sign-up")]
@@ -95,6 +98,17 @@ namespace Gold.IO.Exchange.API.Controllers
             };
 
             PersonService.Create(person);
+
+            var userNotifications = new UserNotifications
+            {
+                User = user,
+                EmailNews = true,
+                EmailLogins = false,
+                EmailCoinsRemovals = false,
+                EmailMarketRemovals = false
+            };
+
+            UserNotificationsService.Create(userNotifications);
 
             var coins = CoinService.GetAll().ToList();
             foreach (var coin in coins)
