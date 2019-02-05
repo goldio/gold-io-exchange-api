@@ -68,13 +68,8 @@ namespace Gold.IO.Exchange.API.Controllers
         [HttpPost("me/update")]
         public async Task<IActionResult> UpdateMe([FromBody] UpdatePersonRequest request)
         {
-            var user = UserService.GetAll()
-                .FirstOrDefault(x => 
-                    x.Login == User.Identity.Name);
-
-            var person = PersonService.GetAll()
-                .FirstOrDefault(x => 
-                    x.User == user);
+            var user = UserService.GetAll().FirstOrDefault(x => x.Login == User.Identity.Name);
+            var person = PersonService.GetAll().FirstOrDefault(x => x.User == user);
 
             if (request.FullName != null)
                 person.FullName = request.FullName;
