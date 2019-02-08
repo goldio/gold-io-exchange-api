@@ -21,7 +21,8 @@ namespace Gold.IO.Exchange.API.BusinessLogic
                 .AddScoped<IUserKeyService, UserKeyService>()
                 .AddScoped<IEmailService, EmailService>()
                 .AddScoped<IUserNotificationsService, UserNotificationsService>()
-                .AddScoped<IApiKeyService, ApiKeyService>();
+                .AddScoped<IApiKeyService, ApiKeyService>()
+                .AddScoped<IUserSessionService, UserSessionService>();
         }
     }
 }
