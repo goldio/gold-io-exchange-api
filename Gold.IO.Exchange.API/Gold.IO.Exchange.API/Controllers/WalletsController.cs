@@ -1,29 +1,39 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Gold.IO.Exchange.API.BusinessLogic.Interfaces;
+using Gold.IO.Exchange.API.Domain.Enum;
+using Gold.IO.Exchange.API.Domain.User;
 using Gold.IO.Exchange.API.ViewModels;
 using Gold.IO.Exchange.API.ViewModels.Response;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using NBitcoin;
 
 namespace Gold.IO.Exchange.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    //[Authorize]
     public class WalletsController : Controller
     {
         private IUserService UserService { get; set; }
-        private IWalletService WalletService { get; set; }
+        private IUserWalletService WalletService { get; set; }
+        private IUserWalletOperationService WalletOperationService { get; set; }
+        private IBitcoinService BitcoinService { get; set; }
 
         public WalletsController([FromServices]
             IUserService userService, 
-            IWalletService walletService)
+            IUserWalletService walletService,
+            IUserWalletOperationService walletOperationService,
+            IBitcoinService bitcoinService)
         {
             UserService = userService;
             WalletService = walletService;
+            WalletOperationService = walletOperationService;
+            BitcoinService = bitcoinService;
         }
 
         [HttpGet("me")]
@@ -34,10 +44,31 @@ namespace Gold.IO.Exchange.API.Controllers
 
             var wallets = WalletService.GetAll()
                 .Where(x => x.User == user)
-                .Select(x => new WalletViewModel(x))
+                .Select(x => new UserWalletViewModel(x))
                 .ToList();
 
-            return Json(new DataResponse<List<WalletViewModel>> { Data = wallets });
+            return Json(new DataResponse<List<UserWalletViewModel>> { Data = wallets });
+        }
+
+        [HttpPost("{id}/deposit")]
+        public async Task<IActionResult> Deposit(long id)
+        {
+            var wallet = WalletService.Get(id);
+            if (wallet == null)
+                return Json(new ResponseModel { Success = false, Message = "Wallet not found" });
+            
+            var depositOrder = new UserWalletOperation
+            {
+                Wallet = wallet,
+                Address = BitcoinService.GetDepositAddress(),
+                Confirmations = 0,
+                Type = UserWalletOperationType.Deposit,
+                Status = UserWalletOperationStatus.InProgress
+            };
+
+            WalletOperationService.Create(depositOrder);
+
+            return Json(new DepositResponse { Address = depositOrder.Address });
         }
     }
 }

@@ -8,8 +8,6 @@ using System.Text;
 using System.Threading.Tasks;
 using Gold.IO.Exchange.API.BusinessLogic;
 using Gold.IO.Exchange.API.BusinessLogic.Interfaces;
-using Gold.IO.Exchange.API.Domain;
-using Gold.IO.Exchange.API.Domain.Coin;
 using Gold.IO.Exchange.API.Domain.Enum;
 using Gold.IO.Exchange.API.Domain.User;
 using Gold.IO.Exchange.API.ViewModels;
@@ -30,8 +28,9 @@ namespace Gold.IO.Exchange.API.Controllers
         private IEmailService EmailService { get; set; }
         private IPersonService PersonService { get; set; }
         private ICoinService CoinService { get; set; }
-        private IWalletService WalletService { get; set; }
+        private IUserWalletService WalletService { get; set; }
         private IUserNotificationsService UserNotificationsService { get; set; }
+        private IUserSessionService UserSessionService { get; set; }
 
         public UsersController([FromServices]
             IUserService userService,
@@ -39,8 +38,9 @@ namespace Gold.IO.Exchange.API.Controllers
             IEmailService emailService,
             IPersonService personService,
             ICoinService coinService,
-            IWalletService walletService,
-            IUserNotificationsService userNotificationsService)
+            IUserWalletService walletService,
+            IUserNotificationsService userNotificationsService,
+            IUserSessionService userSessionService)
         {
             UserService = userService;
             UserKeyService = userKeyService;
@@ -49,6 +49,7 @@ namespace Gold.IO.Exchange.API.Controllers
             CoinService = coinService;
             WalletService = walletService;
             UserNotificationsService = userNotificationsService;
+            UserSessionService = userSessionService;
         }
 
         [HttpPost("sign-up")]
@@ -113,7 +114,7 @@ namespace Gold.IO.Exchange.API.Controllers
             var coins = CoinService.GetAll().ToList();
             foreach (var coin in coins)
             {
-                var wallet = new Wallet
+                var wallet = new UserWallet
                 {
                     Balance = 0,
                     Coin = coin,
@@ -150,6 +151,18 @@ namespace Gold.IO.Exchange.API.Controllers
 
             var identity = GetIdentity(request.Login, CreateMD5(request.Password));
             var token = GetSecurityToken(identity, user.Role);
+
+            var session = new UserSession
+            {
+                User = user,
+                Time = DateTime.UtcNow,
+                IPAddress = Request.HttpContext.Connection.RemoteIpAddress.ToString(),
+                UserAgent = Request.Headers["User-Agent"].ToString(),
+                AccessToken = token.Token,
+                Type = ActivityType.LogIn
+            };
+
+            UserSessionService.Create(session);
 
             return Json(new SignInResponse { SecurityToken = token });
         }
@@ -209,6 +222,16 @@ namespace Gold.IO.Exchange.API.Controllers
             var user = UserService.GetAll().FirstOrDefault(x => x.Login == User.Identity.Name);
 
             return Json(new DataResponse<UserViewModel> { Data = new UserViewModel(user) });
+        }
+
+        [HttpGet("me/activity")]
+        [Authorize]
+        public async Task<IActionResult> GetActivity()
+        {
+            var user = UserService.GetAll().FirstOrDefault(x => x.Login == User.Identity.Name);
+            var activity = UserSessionService.GetAll().Where(x => x.User == user).Select(x => new UserSessionViewModel(x)).ToList();
+
+            return Json(new DataResponse<List<UserSessionViewModel>> { Data = activity });
         }
 
         private ClaimsIdentity GetIdentity(string login, string password)

@@ -16,13 +16,15 @@ namespace Gold.IO.Exchange.API.BusinessLogic
                 .AddScoped<ICityService, CityService>()
                 .AddScoped<IFileService, FileService>()
                 .AddScoped<ICoinService, CoinService>()
-                .AddScoped<IWalletService, WalletService>()
+                .AddScoped<IUserWalletService, UserWalletService>()
+                .AddScoped<IUserWalletOperationService, UserWalletOperationService>()
                 .AddScoped<IOrderService, OrderService>()
                 .AddScoped<IUserKeyService, UserKeyService>()
                 .AddScoped<IEmailService, EmailService>()
                 .AddScoped<IUserNotificationsService, UserNotificationsService>()
                 .AddScoped<IApiKeyService, ApiKeyService>()
-                .AddScoped<IUserSessionService, UserSessionService>();
+                .AddScoped<IUserSessionService, UserSessionService>()
+                .AddScoped<IBitcoinService, BitcoinService>();
         }
     }
 }

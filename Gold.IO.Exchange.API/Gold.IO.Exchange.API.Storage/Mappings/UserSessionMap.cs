@@ -20,6 +20,7 @@ namespace Gold.IO.Exchange.API.Storage.Mappings
             Map(u => u.Time, "time");
             Map(u => u.IPAddress, "ip_address");
             Map(u => u.UserAgent, "user_agent");
+            Map(u => u.AccessToken, "access_token").CustomSqlType("text");
             Map(u => u.Type, "activity_type").CustomType<ActivityType>();
             Map(u => u.Deleted, "deleted").Not.Nullable();
         }

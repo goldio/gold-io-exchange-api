@@ -4,9 +4,9 @@ using System.Text;
 
 namespace Gold.IO.Exchange.API.Domain.Enum
 {
-    public enum ActivityType
+    public enum UserWalletOperationType
     {
-        LogIn = 0,
-        ChangePassword = 1
+        Deposit = 0,
+        Withdraw = 1
     }
 }

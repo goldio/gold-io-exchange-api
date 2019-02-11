@@ -1,6 +1,5 @@
-﻿using Gold.IO.Exchange.API.Domain;
-using Gold.IO.Exchange.API.Domain.Coin;
-using Gold.IO.Exchange.API.Domain.Enum;
+﻿using Gold.IO.Exchange.API.Domain.Enum;
+using Gold.IO.Exchange.API.Domain.Order;
 using System;
 
 namespace Gold.IO.Exchange.API.ViewModels

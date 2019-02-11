@@ -1,9 +1,9 @@
-﻿using Gold.IO.Exchange.API.Domain;
-using Gold.IO.Exchange.API.Domain.Coin;
+﻿
+using Gold.IO.Exchange.API.Domain.User;
 
 namespace Gold.IO.Exchange.API.ViewModels
 {
-    public class WalletViewModel
+    public class UserWalletViewModel
     {
         public long ID { get; set; }
         public UserViewModel User { get; set; }
@@ -12,9 +12,9 @@ namespace Gold.IO.Exchange.API.ViewModels
         public double OnOrders { get; set; }
         public double VTCValue { get; set; }
 
-        public WalletViewModel() { }
+        public UserWalletViewModel() { }
 
-        public WalletViewModel(Wallet wallet)
+        public UserWalletViewModel(UserWallet wallet)
         {
             ID = wallet.ID;
             Coin = new CoinViewModel(wallet.Coin);
@@ -24,7 +24,7 @@ namespace Gold.IO.Exchange.API.ViewModels
             VTCValue = 0;
         }
 
-        public WalletViewModel(Wallet wallet, double onOrders)
+        public UserWalletViewModel(UserWallet wallet, double onOrders)
         {
             ID = wallet.ID;
             Coin = new CoinViewModel(wallet.Coin);
@@ -34,7 +34,7 @@ namespace Gold.IO.Exchange.API.ViewModels
             VTCValue = 0;
         }
 
-        public WalletViewModel(Wallet wallet, double onOrders, double vtcValue)
+        public UserWalletViewModel(UserWallet wallet, double onOrders, double vtcValue)
         {
             ID = wallet.ID;
             Coin = new CoinViewModel(wallet.Coin);

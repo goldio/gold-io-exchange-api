@@ -1,7 +1,6 @@
 ﻿using FluentNHibernate.Mapping;
-using Gold.IO.Exchange.API.Domain;
-using Gold.IO.Exchange.API.Domain.Coin;
 using Gold.IO.Exchange.API.Domain.Enum;
+using Gold.IO.Exchange.API.Domain.Order;
 
 namespace Gold.IO.Exchange.API.Storage.Mappings
 {

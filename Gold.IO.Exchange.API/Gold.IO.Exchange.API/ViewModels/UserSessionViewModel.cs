@@ -13,6 +13,7 @@ namespace Gold.IO.Exchange.API.ViewModels
         public DateTime Time { get; set; }
         public string IPAddress { get; set; }
         public string UserAgent { get; set; }
+        public string AccessToken { get; set; }
         public ActivityType Type { get; set; }
         public UserViewModel User { get; set; }
 
@@ -24,6 +25,7 @@ namespace Gold.IO.Exchange.API.ViewModels
             Time = userSession.Time;
             IPAddress = userSession.IPAddress;
             UserAgent = userSession.UserAgent;
+            AccessToken = userSession.AccessToken;
             Type = userSession.Type;
             User = new UserViewModel(userSession.User);
         }

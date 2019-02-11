@@ -4,9 +4,10 @@ using System.Text;
 
 namespace Gold.IO.Exchange.API.Domain.Enum
 {
-    public enum ActivityType
+    public enum UserWalletOperationStatus
     {
-        LogIn = 0,
-        ChangePassword = 1
+        InProgress = 0,
+        Completed = 1,
+        Canceled = 2
     }
 }
