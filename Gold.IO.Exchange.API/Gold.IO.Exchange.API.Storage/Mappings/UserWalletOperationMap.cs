@@ -14,6 +14,7 @@ namespace Gold.IO.Exchange.API.Storage.Mappings
 
             References(e => e.Wallet, "id_wallet");
 
+            Map(u => u.Time, "time");
             Map(u => u.Address, "address");
             Map(u => u.Amount, "amount");
             Map(u => u.Confirmations, "confirmation");

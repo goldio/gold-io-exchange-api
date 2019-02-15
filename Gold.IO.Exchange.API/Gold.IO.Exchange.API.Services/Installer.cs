@@ -24,7 +24,8 @@ namespace Gold.IO.Exchange.API.BusinessLogic
                 .AddScoped<IUserNotificationsService, UserNotificationsService>()
                 .AddScoped<IApiKeyService, ApiKeyService>()
                 .AddScoped<IUserSessionService, UserSessionService>()
-                .AddScoped<IBitcoinService, BitcoinService>();
+                .AddScoped<IBitcoinService, BitcoinService>()
+                .AddScoped<IRabbitMQService, RabbitMQService>();
         }
     }
 }

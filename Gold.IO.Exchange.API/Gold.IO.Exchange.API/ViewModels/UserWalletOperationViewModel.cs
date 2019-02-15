@@ -10,6 +10,7 @@ namespace Gold.IO.Exchange.API.ViewModels
     public class UserWalletOperationViewModel
     {
         public long ID { get; set; }
+        public DateTime Time { get; set; }
         public UserWalletViewModel Wallet { get; set; }
         public string Address { get; set; }
         public double Amount { get; set; }
@@ -22,6 +23,7 @@ namespace Gold.IO.Exchange.API.ViewModels
         public UserWalletOperationViewModel(UserWalletOperation userWalletOperation)
         {
             ID = userWalletOperation.ID;
+            Time = userWalletOperation.Time;
             Wallet = new UserWalletViewModel(userWalletOperation.Wallet);
             Amount = userWalletOperation.Amount;
             Type = userWalletOperation.Type;

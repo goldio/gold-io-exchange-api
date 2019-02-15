@@ -234,6 +234,24 @@ namespace Gold.IO.Exchange.API.Controllers
             return Json(new DataResponse<List<UserSessionViewModel>> { Data = activity });
         }
 
+        [HttpPost("me/security/update")]
+        [Authorize]
+        public async Task<IActionResult> UpdateSecurity([FromBody] ChangePasswordRequest request)
+        {
+            var user = UserService.GetAll().FirstOrDefault(x => x.Login == User.Identity.Name);
+
+            if (!CreateMD5(request.OldPassword).Equals(user.Password))
+                return Json(new ResponseModel { Success = false, Message = "Old password wrong" });
+
+            if (!request.NewPassword.Equals(request.RepeatPassword))
+                return Json(new ResponseModel { Success = false, Message = "Passwords not equals" });
+
+            user.Password = CreateMD5(request.NewPassword);
+            UserService.Update(user);
+
+            return Json(new ResponseModel());
+        }
+
         private ClaimsIdentity GetIdentity(string login, string password)
         {
             var user = UserService.GetAll().FirstOrDefault(x => 

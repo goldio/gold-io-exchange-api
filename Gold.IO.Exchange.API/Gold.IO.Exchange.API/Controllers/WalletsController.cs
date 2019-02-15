@@ -7,6 +7,7 @@ using Gold.IO.Exchange.API.BusinessLogic.Interfaces;
 using Gold.IO.Exchange.API.Domain.Enum;
 using Gold.IO.Exchange.API.Domain.User;
 using Gold.IO.Exchange.API.ViewModels;
+using Gold.IO.Exchange.API.ViewModels.Request;
 using Gold.IO.Exchange.API.ViewModels.Response;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -39,8 +40,7 @@ namespace Gold.IO.Exchange.API.Controllers
         [HttpGet("me")]
         public async Task<IActionResult> GetMeWallets()
         {
-            var user = UserService.GetAll()
-                .FirstOrDefault(x => x.Login == User.Identity.Name);
+            var user = UserService.GetAll().FirstOrDefault(x => x.Login == User.Identity.Name);
 
             var wallets = WalletService.GetAll()
                 .Where(x => x.User == user)
@@ -48,6 +48,32 @@ namespace Gold.IO.Exchange.API.Controllers
                 .ToList();
 
             return Json(new DataResponse<List<UserWalletViewModel>> { Data = wallets });
+        }
+
+        [HttpGet("me/history/deposit")]
+        public async Task<IActionResult> GetMeDepositHistory()
+        {
+            var user = UserService.GetAll().FirstOrDefault(x => x.Login == User.Identity.Name);
+
+            var operations = WalletOperationService.GetAll()
+                .Where(x => x.Wallet.User == user && x.Type == UserWalletOperationType.Deposit)
+                .Select(x => new UserWalletOperationViewModel(x))
+                .ToList();
+
+            return Json(new DataResponse<List<UserWalletOperationViewModel>> { Data = operations });
+        }
+
+        [HttpGet("me/history/withdraw")]
+        public async Task<IActionResult> GetMeWithdrawHistory()
+        {
+            var user = UserService.GetAll().FirstOrDefault(x => x.Login == User.Identity.Name);
+
+            var operations = WalletOperationService.GetAll()
+                .Where(x => x.Wallet.User == user && x.Type == UserWalletOperationType.Withdraw)
+                .Select(x => new UserWalletOperationViewModel(x))
+                .ToList();
+
+            return Json(new DataResponse<List<UserWalletOperationViewModel>> { Data = operations });
         }
 
         [HttpPost("{id}/deposit")]
@@ -66,9 +92,41 @@ namespace Gold.IO.Exchange.API.Controllers
                 Status = UserWalletOperationStatus.InProgress
             };
 
+            //var ecKey = Nethereum.Signer.EthECKey.GenerateKey();
+            //var privateKey = ecKey.GetPrivateKeyAsBytes().ToHex();
+            //var account = new Nethereum.Accounts.Account(privateKey);
+            //var block = Network.Main.GetGenesis().Transactions.
+
             WalletOperationService.Create(depositOrder);
 
             return Json(new DepositResponse { Address = depositOrder.Address });
+        }
+
+        [HttpPost("{id}/withdraw")]
+        public async Task<IActionResult> Withdraw([FromBody] WithdrawRequest request, long id)
+        {
+            var wallet = WalletService.Get(id);
+            if (wallet == null)
+                return Json(new ResponseModel { Success = false, Message = "Wallet not found" });
+
+            if (wallet.Balance > request.Amount)
+                return Json(new ResponseModel { Success = false, Message = "Insufficient funds" });
+
+            var withdrawOrder = new UserWalletOperation
+            {
+                Wallet = wallet,
+                Address = request.Address,
+                Confirmations = 0,
+                Type = UserWalletOperationType.Withdraw,
+                Status = UserWalletOperationStatus.InProgress
+            };
+
+            WalletOperationService.Create(withdrawOrder);
+
+            wallet.Balance -= request.Amount;
+            WalletService.Update(wallet);
+
+            return Json(new ResponseModel());
         }
     }
 }

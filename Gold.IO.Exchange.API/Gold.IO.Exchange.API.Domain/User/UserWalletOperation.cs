@@ -8,6 +8,7 @@ namespace Gold.IO.Exchange.API.Domain.User
     public class UserWalletOperation : PersistentObject, IDeletableObject
     {
         public virtual UserWallet Wallet { get; set; }
+        public virtual DateTime Time { get; set; }
         public virtual string Address { get; set; }
         public virtual double Amount { get; set; }
         public virtual UserWalletOperationType Type { get; set; }
