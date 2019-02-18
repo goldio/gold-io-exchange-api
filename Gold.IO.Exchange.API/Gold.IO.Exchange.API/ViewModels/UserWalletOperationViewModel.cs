@@ -12,7 +12,6 @@ namespace Gold.IO.Exchange.API.ViewModels
         public long ID { get; set; }
         public DateTime Time { get; set; }
         public UserWalletViewModel Wallet { get; set; }
-        public string Address { get; set; }
         public double Amount { get; set; }
         public UserWalletOperationType Type { get; set; }
         public long Confirmations { get; set; }

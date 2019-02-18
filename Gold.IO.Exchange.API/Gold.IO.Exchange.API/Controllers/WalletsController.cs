@@ -12,6 +12,8 @@ using Gold.IO.Exchange.API.ViewModels.Response;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NBitcoin;
+using NBitcoin.RPC;
+using NBXplorer;
 
 namespace Gold.IO.Exchange.API.Controllers
 {
@@ -22,17 +24,20 @@ namespace Gold.IO.Exchange.API.Controllers
     {
         private IUserService UserService { get; set; }
         private IUserWalletService WalletService { get; set; }
+        private IWalletAddressService WalletAddressService { get; set; }
         private IUserWalletOperationService WalletOperationService { get; set; }
         private IBitcoinService BitcoinService { get; set; }
 
         public WalletsController([FromServices]
             IUserService userService, 
             IUserWalletService walletService,
+            IWalletAddressService walletAddressService,
             IUserWalletOperationService walletOperationService,
             IBitcoinService bitcoinService)
         {
             UserService = userService;
             WalletService = walletService;
+            WalletAddressService = walletAddressService;
             WalletOperationService = walletOperationService;
             BitcoinService = bitcoinService;
         }
@@ -86,47 +91,41 @@ namespace Gold.IO.Exchange.API.Controllers
             var depositOrder = new UserWalletOperation
             {
                 Wallet = wallet,
-                Address = BitcoinService.GetDepositAddress(),
                 Confirmations = 0,
                 Type = UserWalletOperationType.Deposit,
                 Status = UserWalletOperationStatus.InProgress
             };
-
-            //var ecKey = Nethereum.Signer.EthECKey.GenerateKey();
-            //var privateKey = ecKey.GetPrivateKeyAsBytes().ToHex();
-            //var account = new Nethereum.Accounts.Account(privateKey);
-            //var block = Network.Main.GetGenesis().Transactions.
-
+            
             WalletOperationService.Create(depositOrder);
 
-            return Json(new DepositResponse { Address = depositOrder.Address });
+            return Json(new DepositResponse { Address = depositOrder.Wallet.Address.Address });
         }
 
-        [HttpPost("{id}/withdraw")]
-        public async Task<IActionResult> Withdraw([FromBody] WithdrawRequest request, long id)
-        {
-            var wallet = WalletService.Get(id);
-            if (wallet == null)
-                return Json(new ResponseModel { Success = false, Message = "Wallet not found" });
+        //[HttpPost("{id}/withdraw")]
+        //public async Task<IActionResult> Withdraw([FromBody] WithdrawRequest request, long id)
+        //{
+        //    var wallet = WalletService.Get(id);
+        //    if (wallet == null)
+        //        return Json(new ResponseModel { Success = false, Message = "Wallet not found" });
 
-            if (wallet.Balance > request.Amount)
-                return Json(new ResponseModel { Success = false, Message = "Insufficient funds" });
+        //    if (wallet.Balance > request.Amount)
+        //        return Json(new ResponseModel { Success = false, Message = "Insufficient funds" });
 
-            var withdrawOrder = new UserWalletOperation
-            {
-                Wallet = wallet,
-                Address = request.Address,
-                Confirmations = 0,
-                Type = UserWalletOperationType.Withdraw,
-                Status = UserWalletOperationStatus.InProgress
-            };
+        //    var withdrawOrder = new UserWalletOperation
+        //    {
+        //        Wallet = wallet,
+        //        Address = request.Address,
+        //        Confirmations = 0,
+        //        Type = UserWalletOperationType.Withdraw,
+        //        Status = UserWalletOperationStatus.InProgress
+        //    };
 
-            WalletOperationService.Create(withdrawOrder);
+        //    WalletOperationService.Create(withdrawOrder);
 
-            wallet.Balance -= request.Amount;
-            WalletService.Update(wallet);
+        //    wallet.Balance -= request.Amount;
+        //    WalletService.Update(wallet);
 
-            return Json(new ResponseModel());
-        }
+        //    return Json(new ResponseModel());
+        //}
     }
 }

@@ -16,6 +16,7 @@ namespace Gold.IO.Exchange.API.BusinessLogic
                 .AddScoped<ICityService, CityService>()
                 .AddScoped<IFileService, FileService>()
                 .AddScoped<ICoinService, CoinService>()
+                .AddScoped<IWalletAddressService, WalletAddressService>()
                 .AddScoped<IUserWalletService, UserWalletService>()
                 .AddScoped<IUserWalletOperationService, UserWalletOperationService>()
                 .AddScoped<IOrderService, OrderService>()
@@ -25,6 +26,7 @@ namespace Gold.IO.Exchange.API.BusinessLogic
                 .AddScoped<IApiKeyService, ApiKeyService>()
                 .AddScoped<IUserSessionService, UserSessionService>()
                 .AddScoped<IBitcoinService, BitcoinService>()
+                .AddScoped<IEthereumService, EthereumService>()
                 .AddScoped<IRabbitMQService, RabbitMQService>();
         }
     }

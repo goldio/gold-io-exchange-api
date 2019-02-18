@@ -31,6 +31,7 @@ namespace Gold.IO.Exchange.API.Controllers
         private IUserWalletService WalletService { get; set; }
         private IUserNotificationsService UserNotificationsService { get; set; }
         private IUserSessionService UserSessionService { get; set; }
+        private IWalletAddressService WalletAddressService { get; set; }
 
         public UsersController([FromServices]
             IUserService userService,
@@ -40,7 +41,8 @@ namespace Gold.IO.Exchange.API.Controllers
             ICoinService coinService,
             IUserWalletService walletService,
             IUserNotificationsService userNotificationsService,
-            IUserSessionService userSessionService)
+            IUserSessionService userSessionService,
+            IWalletAddressService walletAddressService)
         {
             UserService = userService;
             UserKeyService = userKeyService;
@@ -50,6 +52,7 @@ namespace Gold.IO.Exchange.API.Controllers
             WalletService = walletService;
             UserNotificationsService = userNotificationsService;
             UserSessionService = userSessionService;
+            WalletAddressService = walletAddressService;
         }
 
         [HttpPost("sign-up")]
@@ -120,6 +123,16 @@ namespace Gold.IO.Exchange.API.Controllers
                     Coin = coin,
                     User = user
                 };
+
+                if (coin.ShortName != "EOS" && coin.ShortName != "GIO")
+                {
+                    var address = WalletAddressService.GetAll().FirstOrDefault(x => x.Coin == coin && !x.IsUsed);
+
+                    address.IsUsed = true;
+                    WalletAddressService.Update(address);
+
+                    wallet.Address = address;
+                }
 
                 WalletService.Create(wallet);
             }

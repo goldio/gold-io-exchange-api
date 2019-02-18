@@ -50,6 +50,7 @@ namespace Gold.IO.Exchange.API
 
             services.AddWebSocketManager();
             services.AddScoped<TradeManager.TradeManager>();
+            services.AddScoped<TransactionsManager.TransactionsManager>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -81,6 +82,9 @@ namespace Gold.IO.Exchange.API
 
             var tradeManager = serviceProvider.GetService<TradeManager.TradeManager>();
             tradeManager.SetServices(serviceProvider.GetService<IOrderService>());
+
+            var transactionsManager = serviceProvider.GetService<TransactionsManager.TransactionsManager>();
+            transactionsManager.SetServices(serviceProvider.GetService<IUserWalletService>(), serviceProvider.GetService<IUserWalletOperationService>());
         }
     }
 }

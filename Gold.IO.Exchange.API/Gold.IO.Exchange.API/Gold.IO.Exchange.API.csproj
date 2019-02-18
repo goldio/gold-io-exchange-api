@@ -7,15 +7,18 @@
 
   <ItemGroup>
     <PackageReference Include="Binance.Net" Version="4.0.6" />
+    <PackageReference Include="eos-sharp" Version="1.0.7" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.Razor.Design" Version="2.2.0" PrivateAssets="All" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.2.0" />
     <PackageReference Include="NBitcoin" Version="4.1.1.81" />
+    <PackageReference Include="NBXplorer.Client" Version="2.0.0.3" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Gold.IO.Exchange.API.Domain\Gold.IO.Exchange.API.Domain.csproj" />
     <ProjectReference Include="..\Gold.IO.Exchange.API.Services\Gold.IO.Exchange.API.BusinessLogic.csproj" />
+    <ProjectReference Include="..\Info.Blockchain.API\Info.Blockchain.API.csproj" />
   </ItemGroup>
 
 </Project>
