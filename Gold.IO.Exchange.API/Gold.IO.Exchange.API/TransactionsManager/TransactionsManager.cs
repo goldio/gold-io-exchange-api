@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Timers;
 using Info.Blockchain.API.Models;
+using Gold.IO.Exchange.API.BlockExplorer.Blockcypher;
 
 namespace Gold.IO.Exchange.API.TransactionsManager
 {
@@ -88,6 +89,9 @@ namespace Gold.IO.Exchange.API.TransactionsManager
 
         private void CheckBitcoinOperations(List<UserWallet> wallets)
         {
+            if (wallets.FirstOrDefault(x => !x.Coin.ShortName.Equals("BTC")) != null)
+                return;
+
             using(var client = new BlockchainClient())
             {
                 var blockHeightTask = client.GetBlockCount();
@@ -130,12 +134,69 @@ namespace Gold.IO.Exchange.API.TransactionsManager
 
         private void CheckEthereumOperations(List<UserWallet> wallets)
         {
+            if (wallets.FirstOrDefault(x => !x.Coin.ShortName.Equals("ETH")) != null)
+                return;
 
+            foreach (var w in wallets)
+            {
+                using (var client = new BlockcypherClient())
+                {
+                    var addressTask = client.CheckAddress(w.Address.Address);
+                    addressTask.Wait();
+
+                    var address = addressTask.Result;
+                    if (address == null || address.Txrefs == null || address.Txrefs.Length == 0)
+                        return;
+
+                    var addressBalance = ConvertToEth(address.Balance);
+                    if (w.Balance != addressBalance)
+                    {
+                        w.Balance = addressBalance;
+
+                        var operations = UserWalletOperationService.GetAll().Where(x => x.Wallet == w && x.Type == UserWalletOperationType.Deposit);
+                        foreach (var o in operations)
+                            UserWalletOperationService.Delete(o);
+
+                        foreach (var tx in address.Txrefs)
+                        {
+                            if (tx.TxInputN.Equals(-1) && tx.TxOutputN.Equals(0))
+                            {
+                                var operation = new UserWalletOperation
+                                {
+                                    Amount = ConvertToEth(tx.Value),
+                                    Confirmations = tx.Confirmations,
+                                    Time = DateTime.Parse(tx.TimeStamp),
+                                    Type = UserWalletOperationType.Deposit,
+                                    Status = UserWalletOperationStatus.Completed,
+                                    Wallet = w
+                                };
+
+                                UserWalletOperationService.Create(operation);
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         private void CheckEosOperations(List<UserWallet> wallets)
         {
 
+        }
+
+        private double ConvertToWei(double amountInEth)
+        {
+            return amountInEth * 1000000000000000000;
+        } 
+
+        private double ConvertToEth(double amountInWei)
+        {
+            return amountInWei / 1000000000000000000;
+        }
+
+        private double ConvertToEth(long amountInWei)
+        {
+            return amountInWei / 1000000000000000000;
         }
     }
 }
