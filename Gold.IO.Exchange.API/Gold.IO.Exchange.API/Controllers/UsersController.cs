@@ -133,6 +133,16 @@ namespace Gold.IO.Exchange.API.Controllers
 
                     wallet.Address = address;
                 }
+                else if (coin.ShortName == "EOS")
+                {
+                    var address = WalletAddressService.GetAll().FirstOrDefault(x => x.Coin.ShortName.Equals("EOS"));
+                    wallet.Address = address;
+                }
+                else if (coin.ShortName == "GIO")
+                {
+                    var address = WalletAddressService.GetAll().FirstOrDefault(x => x.Coin.ShortName.Equals("GIO"));
+                    wallet.Address = address;
+                }
 
                 WalletService.Create(wallet);
             }
