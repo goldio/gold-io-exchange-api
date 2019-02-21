@@ -11,7 +11,7 @@ namespace Gold.IO.Exchange.API.ViewModels
     {
         public long ID { get; set; }
         public DateTime Time { get; set; }
-        public UserWalletViewModel Wallet { get; set; }
+        public CoinAddressViewModel Address { get; set; }
         public double Amount { get; set; }
         public UserWalletOperationType Type { get; set; }
         public long Confirmations { get; set; }
@@ -23,7 +23,7 @@ namespace Gold.IO.Exchange.API.ViewModels
         {
             ID = userWalletOperation.ID;
             Time = userWalletOperation.Time;
-            Wallet = new UserWalletViewModel(userWalletOperation.Wallet);
+            Address = new CoinAddressViewModel(userWalletOperation.Address);
             Amount = userWalletOperation.Amount;
             Type = userWalletOperation.Type;
             Confirmations = userWalletOperation.Confirmations;

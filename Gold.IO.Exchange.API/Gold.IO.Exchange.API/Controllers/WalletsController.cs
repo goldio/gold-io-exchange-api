@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Gold.IO.Exchange.API.BusinessLogic.Interfaces;
+using Gold.IO.Exchange.API.Domain.Coin;
 using Gold.IO.Exchange.API.Domain.Enum;
 using Gold.IO.Exchange.API.Domain.User;
 using Gold.IO.Exchange.API.Utils.Helpers;
@@ -25,29 +26,25 @@ namespace Gold.IO.Exchange.API.Controllers
     {
         private IUserService UserService { get; set; }
         private IUserWalletService WalletService { get; set; }
-        private IWalletAddressService WalletAddressService { get; set; }
+        private ICoinAddressService CoinAddressService { get; set; }
+        private ICoinAccountService CoinAccountService { get; set; }
         private IUserWalletOperationService WalletOperationService { get; set; }
         private IBitcoinService BitcoinService { get; set; }
 
         public WalletsController([FromServices]
             IUserService userService, 
             IUserWalletService walletService,
-            IWalletAddressService walletAddressService,
+            ICoinAddressService coinAddressService,
+            ICoinAccountService coinAccountService,
             IUserWalletOperationService walletOperationService,
             IBitcoinService bitcoinService)
         {
             UserService = userService;
             WalletService = walletService;
-            WalletAddressService = walletAddressService;
+            CoinAddressService = coinAddressService;
+            CoinAccountService = coinAccountService;
             WalletOperationService = walletOperationService;
             BitcoinService = bitcoinService;
-        }
-
-        [HttpGet("test")]
-        public async Task<IActionResult> Test()
-        {
-            var test = await EthereumBlockchainHelper.GetAddress();
-            return Json(new DataResponse<string> { Data = test });
         }
 
         [HttpGet("me")]
@@ -69,7 +66,7 @@ namespace Gold.IO.Exchange.API.Controllers
             var user = UserService.GetAll().FirstOrDefault(x => x.Login == User.Identity.Name);
 
             var operations = WalletOperationService.GetAll()
-                .Where(x => x.Wallet.User == user && x.Type == UserWalletOperationType.Deposit)
+                .Where(x => x.Address.Wallet.User == user && x.Type == UserWalletOperationType.Deposit && x.Status == UserWalletOperationStatus.Completed)
                 .Select(x => new UserWalletOperationViewModel(x))
                 .ToList();
 
@@ -82,7 +79,7 @@ namespace Gold.IO.Exchange.API.Controllers
             var user = UserService.GetAll().FirstOrDefault(x => x.Login == User.Identity.Name);
 
             var operations = WalletOperationService.GetAll()
-                .Where(x => x.Wallet.User == user && x.Type == UserWalletOperationType.Withdraw)
+                .Where(x => x.Address.Wallet.User == user && x.Type == UserWalletOperationType.Withdraw)
                 .Select(x => new UserWalletOperationViewModel(x))
                 .ToList();
 
@@ -95,18 +92,62 @@ namespace Gold.IO.Exchange.API.Controllers
             var wallet = WalletService.Get(id);
             if (wallet == null)
                 return Json(new ResponseModel { Success = false, Message = "Wallet not found" });
-            
-            var depositOrder = new UserWalletOperation
-            {
-                Wallet = wallet,
-                Confirmations = 0,
-                Type = UserWalletOperationType.Deposit,
-                Status = UserWalletOperationStatus.InProgress
-            };
-            
-            WalletOperationService.Create(depositOrder);
 
-            return Json(new DepositResponse { Address = depositOrder.Wallet.Address.Address });
+            var address = CoinAddressService.GetAll().FirstOrDefault(x => x.Wallet == wallet);
+            if (address == null || !address.IsUsing)
+            {
+                if (wallet.Coin.ShortName.Equals("ETH"))
+                {
+                    var ecKey = EthereumBlockchainHelper.GetECKey();
+                    address = new CoinAddress
+                    {
+                        PrivateKey = ecKey.GetPrivateKey(),
+                        PublicAddress = ecKey.GetPublicAddress(),
+                        IsUsing = true,
+                        Wallet = wallet
+                    };
+
+                    CoinAddressService.Create(address);
+                }
+                else if (wallet.Coin.ShortName.Equals("BTC"))
+                {
+                    var account = CoinAccountService.GetAll().FirstOrDefault(x => x.Coin == wallet.Coin);
+                    if (account == null)
+                        return Json(new ResponseModel { Success = false, Message = "Private key not found" });
+
+                    var btcAddress = BitcoinBlockchainHelper.GetAddress(account.AccountKey, (uint)account.Derivations);
+                    if (btcAddress == null)
+                        return Json(new ResponseModel { Success = false, Message = "Address error" });
+
+                    account.Derivations++;
+                    CoinAccountService.Update(account);
+
+                    address = new CoinAddress
+                    {
+                        PublicAddress = btcAddress,
+                        IsUsing = true,
+                        Wallet = wallet
+                    };
+
+                    CoinAddressService.Create(address);
+                }
+                else if (wallet.Coin.ShortName.Equals("EOS"))
+                {
+
+                }
+
+                var depositOrder = new UserWalletOperation
+                {
+                    Address = address,
+                    Confirmations = 0,
+                    Type = UserWalletOperationType.Deposit,
+                    Status = UserWalletOperationStatus.InProgress
+                };
+
+                WalletOperationService.Create(depositOrder);
+            }
+
+            return Json(new DepositResponse { Address = address.PublicAddress });
         }
 
         //[HttpPost("{id}/withdraw")]

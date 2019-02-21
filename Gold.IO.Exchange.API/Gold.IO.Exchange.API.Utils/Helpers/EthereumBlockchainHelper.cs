@@ -1,5 +1,6 @@
 ﻿using Nethereum.Hex.HexConvertors.Extensions;
 using Nethereum.Hex.HexTypes;
+using Nethereum.Signer;
 using Nethereum.Web3;
 using Nethereum.Web3.Accounts;
 using System;
@@ -15,9 +16,9 @@ namespace Gold.IO.Exchange.API.Utils.Helpers
 
         public static HexBigInteger LastMaxBlockNumber = new HexBigInteger(0);
 
-        public static async Task<string> GetAddress()
+        public static EthECKey GetECKey()
         {
-            return Nethereum.Signer.EthECKey.GenerateKey().GetPublicAddress();
+            return new EthECKey(PrivateKey);
         }
     }
 }

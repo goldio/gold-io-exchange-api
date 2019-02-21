@@ -7,7 +7,6 @@ namespace Gold.IO.Exchange.API.Domain.User
 
         public virtual User User { get; set; }
         public virtual Coin.Coin Coin { get; set; }
-        public virtual WalletAddress Address { get; set; }
         public virtual double Balance { get; set; }
     }
 }

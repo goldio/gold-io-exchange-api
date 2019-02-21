@@ -84,7 +84,10 @@ namespace Gold.IO.Exchange.API
             tradeManager.SetServices(serviceProvider.GetService<IOrderService>());
 
             var transactionsManager = serviceProvider.GetService<TransactionsManager.TransactionsManager>();
-            transactionsManager.SetServices(serviceProvider.GetService<IUserWalletService>(), serviceProvider.GetService<IUserWalletOperationService>());
+            transactionsManager.SetServices(
+                serviceProvider.GetService<IUserWalletService>(), 
+                serviceProvider.GetService<IUserWalletOperationService>(),
+                serviceProvider.GetService<ICoinAddressService>());
         }
     }
 }

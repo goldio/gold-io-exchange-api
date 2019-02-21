@@ -14,7 +14,6 @@ namespace Gold.IO.Exchange.API.Storage.Mappings
 
             References(e => e.Coin, "id_coin");
             References(e => e.User, "id_user");
-            References(e => e.Address, "id_address");
 
             Map(u => u.Balance, "balance");
             Map(u => u.Deleted, "deleted").Not.Nullable();

@@ -31,7 +31,6 @@ namespace Gold.IO.Exchange.API.Controllers
         private IUserWalletService WalletService { get; set; }
         private IUserNotificationsService UserNotificationsService { get; set; }
         private IUserSessionService UserSessionService { get; set; }
-        private IWalletAddressService WalletAddressService { get; set; }
 
         public UsersController([FromServices]
             IUserService userService,
@@ -41,8 +40,7 @@ namespace Gold.IO.Exchange.API.Controllers
             ICoinService coinService,
             IUserWalletService walletService,
             IUserNotificationsService userNotificationsService,
-            IUserSessionService userSessionService,
-            IWalletAddressService walletAddressService)
+            IUserSessionService userSessionService)
         {
             UserService = userService;
             UserKeyService = userKeyService;
@@ -52,7 +50,6 @@ namespace Gold.IO.Exchange.API.Controllers
             WalletService = walletService;
             UserNotificationsService = userNotificationsService;
             UserSessionService = userSessionService;
-            WalletAddressService = walletAddressService;
         }
 
         [HttpPost("sign-up")]
@@ -115,36 +112,14 @@ namespace Gold.IO.Exchange.API.Controllers
             UserNotificationsService.Create(userNotifications);
 
             var coins = CoinService.GetAll().ToList();
-            foreach (var coin in coins)
+            foreach (var c in coins)
             {
-                var wallet = new UserWallet
+                WalletService.Create(new UserWallet
                 {
+                    Coin = c,
                     Balance = 0,
-                    Coin = coin,
                     User = user
-                };
-
-                if (coin.ShortName != "EOS" && coin.ShortName != "GIO")
-                {
-                    var address = WalletAddressService.GetAll().FirstOrDefault(x => x.Coin == coin && !x.IsUsed);
-
-                    address.IsUsed = true;
-                    WalletAddressService.Update(address);
-
-                    wallet.Address = address;
-                }
-                else if (coin.ShortName == "EOS")
-                {
-                    var address = WalletAddressService.GetAll().FirstOrDefault(x => x.Coin.ShortName.Equals("EOS"));
-                    wallet.Address = address;
-                }
-                else if (coin.ShortName == "GIO")
-                {
-                    var address = WalletAddressService.GetAll().FirstOrDefault(x => x.Coin.ShortName.Equals("GIO"));
-                    wallet.Address = address;
-                }
-
-                WalletService.Create(wallet);
+                });
             }
 
             await EmailService.SendActivationMessage(user.Login, activationKey.KeyValue);

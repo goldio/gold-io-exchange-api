@@ -1,5 +1,5 @@
 ﻿using Gold.IO.Exchange.API.BusinessLogic.Interfaces;
-using Gold.IO.Exchange.API.Domain;
+using Gold.IO.Exchange.API.Domain.Coin;
 using Gold.IO.Exchange.API.Storage.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -7,9 +7,9 @@ using System.Text;
 
 namespace Gold.IO.Exchange.API.BusinessLogic.Services
 {
-    public class WalletAddressService : BaseCrudService<WalletAddress>, IWalletAddressService
+    public class CoinAccountService : BaseCrudService<CoinAccount>, ICoinAccountService
     {
-        public WalletAddressService(IRepository<WalletAddress> repository) : base(repository)
+        public CoinAccountService(IRepository<CoinAccount> repository) : base(repository)
         {
         }
     }

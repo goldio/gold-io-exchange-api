@@ -16,31 +16,38 @@ namespace Gold.IO.Exchange.API.TransactionsManager
     {
         private IUserWalletService UserWalletService { get; set; }
         private IUserWalletOperationService UserWalletOperationService { get; set; }
+        private ICoinAddressService CoinAddressService { get; set; }
 
         public TransactionsManager()
         {
             var myTimer = new Timer();
             myTimer.Elapsed += new ElapsedEventHandler(CheckOperations);
-            myTimer.Interval = 60000 * 10;
+            myTimer.Interval = 63250 * 3;
             myTimer.Start();
         }
 
-        public void SetServices(IUserWalletService userWalletService, IUserWalletOperationService userWalletOperationService)
+        public void SetServices(
+            IUserWalletService userWalletService, 
+            IUserWalletOperationService userWalletOperationService,
+            ICoinAddressService coinAddressService)
         {
             if (UserWalletService == null)
                 UserWalletService = userWalletService;
 
             if (UserWalletOperationService == null)
                 UserWalletOperationService = userWalletOperationService;
+
+            if (CoinAddressService == null)
+                CoinAddressService = coinAddressService;
         }
 
         public void CheckOperations(object source, ElapsedEventArgs e)
         {
-            var wallets = UserWalletService.GetAll().ToList();
+            var operations = UserWalletOperationService.GetAll().ToList();
 
-            CheckBitcoinOperations(wallets.Where(x => x.Coin.ShortName == "BTC").ToList());
-            CheckEthereumOperations(wallets.Where(x => x.Coin.ShortName == "ETH").ToList());
-            CheckEosOperations(wallets.Where(x => x.Coin.ShortName == "EOS").ToList());
+            CheckBitcoinOperations(operations.Where(x => x.Address.Wallet.Coin.ShortName == "BTC" && x.Status == UserWalletOperationStatus.InProgress).ToList());
+            CheckEthereumOperations(operations.Where(x => x.Address.Wallet.Coin.ShortName == "ETH" && x.Status == UserWalletOperationStatus.InProgress).ToList());
+            CheckEosOperations(operations.Where(x => x.Address.Wallet.Coin.ShortName == "EOS" && x.Status == UserWalletOperationStatus.InProgress).ToList());
         }
 
         public long GetTransactionConfirmations(Transaction tx)
@@ -74,74 +81,76 @@ namespace Gold.IO.Exchange.API.TransactionsManager
             }
         }
 
-        private void UpdateLocalWallet(Address address)
-        {
-            var wallet = UserWalletService.GetAll().FirstOrDefault(x => x.Address.Address == address.Base58Check);
-            if (wallet == null)
-                return;
+        //private void UpdateLocalWallet(Address address)
+        //{
+        //    var wallet = UserWalletService.GetAll().FirstOrDefault(x => x..Address == address.Base58Check);
+        //    if (wallet == null)
+        //        return;
 
-            var addressBalance = (double)address.FinalBalance.GetBtc();
-            if (wallet.Balance < addressBalance)
-            {
+        //    var addressBalance = (double)address.FinalBalance.GetBtc();
+        //    if (wallet.Balance < addressBalance)
+        //    {
                 
-            }
-        }
+        //    }
+        //}
 
-        private void CheckBitcoinOperations(List<UserWallet> wallets)
+        private void CheckBitcoinOperations(List<UserWalletOperation> operations)
         {
-            if (wallets.FirstOrDefault(x => !x.Coin.ShortName.Equals("BTC")) != null)
+            if (operations.FirstOrDefault(x => !x.Address.Wallet.Coin.ShortName.Equals("BTC")) != null)
                 return;
 
-            using(var client = new BlockchainClient())
+            using (var client = new BlockchainClient())
             {
                 var blockHeightTask = client.GetBlockCount();
                 blockHeightTask.Wait();
 
-                foreach (var w in wallets)
+                foreach (var o in operations)
                 {
-                    var addressTask = client.GetAddress(w.Address.Address);
+                    var addressTask = client.GetAddress(o.Address.PublicAddress);
                     addressTask.Wait();
 
                     var address = addressTask.Result;
                     var addressBalance = (double)address.FinalBalance.GetBtc();
 
-                    if (w.Balance != addressBalance)
+                    if (o.Address.Wallet.Balance != addressBalance)
                     {
-                        w.Balance = (double)address.FinalBalance.GetBtc();
+                        var tx = address.Transactions.FirstOrDefault();
+                        var txConfs = GetTransactionConfirmations(tx);
 
-                        var operations = UserWalletOperationService.GetAll().Where(x => x.Wallet == w && x.Type == UserWalletOperationType.Deposit);
-                        foreach (var o in operations)
-                            UserWalletOperationService.Delete(o);
-
-                        foreach (var tx in address.Transactions)
+                        if (txConfs < 2)
                         {
-                            var operation = new UserWalletOperation
-                            {
-                                Amount = (double)tx.Outputs.FirstOrDefault(x => x.Address == w.Address.Address).Value.GetBtc(),
-                                Confirmations = blockHeightTask.Result - tx.BlockHeight,
-                                Time = tx.Time,
-                                Type = UserWalletOperationType.Deposit,
-                                Status = UserWalletOperationStatus.Completed,
-                                Wallet = w
-                            };
+                            o.Address.IsUsing = false;
+                            CoinAddressService.Update(o.Address);
 
-                            UserWalletOperationService.Create(operation);
+                            o.Amount = (double)address.FinalBalance.GetBtc();
+                            o.Confirmations = txConfs;
+                            o.Time = tx.Time;
+                            o.Status = UserWalletOperationStatus.InProgress;
+                            UserWalletOperationService.Update(o);
+                        }
+                        else if (txConfs > 1)
+                        {
+                            o.Status = UserWalletOperationStatus.Completed;
+                            UserWalletOperationService.Update(o);
+
+                            o.Address.Wallet.Balance += o.Amount;
+                            UserWalletService.Update(o.Address.Wallet);
                         }
                     }
                 }
             }
         }
 
-        private void CheckEthereumOperations(List<UserWallet> wallets)
+        private void CheckEthereumOperations(List<UserWalletOperation> operations)
         {
-            if (wallets.FirstOrDefault(x => !x.Coin.ShortName.Equals("ETH")) != null)
+            if (operations.FirstOrDefault(x => !x.Address.Wallet.Coin.ShortName.Equals("BTC")) != null)
                 return;
 
-            foreach (var w in wallets)
+            using (var client = new BlockcypherClient())
             {
-                using (var client = new BlockcypherClient())
+                foreach (var o in operations)
                 {
-                    var addressTask = client.CheckAddress(w.Address.Address);
+                    var addressTask = client.CheckAddress(o.Address.PublicAddress);
                     addressTask.Wait();
 
                     var address = addressTask.Result;
@@ -149,37 +158,31 @@ namespace Gold.IO.Exchange.API.TransactionsManager
                         return;
 
                     var addressBalance = ConvertToEth(address.Balance);
-                    if (w.Balance != addressBalance)
+
+                    if (o.Address.Wallet.Balance != addressBalance)
                     {
-                        w.Balance = addressBalance;
+                        var tx = address.Txrefs.FirstOrDefault();
 
-                        var operations = UserWalletOperationService.GetAll().Where(x => x.Wallet == w && x.Type == UserWalletOperationType.Deposit);
-                        foreach (var o in operations)
-                            UserWalletOperationService.Delete(o);
+                        o.Address.Wallet.Balance = addressBalance;
+                        UserWalletService.Update(o.Address.Wallet);
 
-                        foreach (var tx in address.Txrefs)
-                        {
-                            if (tx.TxInputN.Equals(-1) && tx.TxOutputN.Equals(0))
-                            {
-                                var operation = new UserWalletOperation
-                                {
-                                    Amount = ConvertToEth(tx.Value),
-                                    Confirmations = tx.Confirmations,
-                                    Time = DateTime.Parse(tx.TimeStamp),
-                                    Type = UserWalletOperationType.Deposit,
-                                    Status = UserWalletOperationStatus.Completed,
-                                    Wallet = w
-                                };
+                        o.Address.IsUsing = false;
+                        CoinAddressService.Update(o.Address);
 
-                                UserWalletOperationService.Create(operation);
-                            }
-                        }
+                        o.Amount = addressBalance;
+                        o.Confirmations = tx.Confirmations;
+                        o.Time = DateTime.Parse(tx.TimeStamp);
+                        o.Status = UserWalletOperationStatus.Completed;
+                        UserWalletOperationService.Update(o);
+
+                        o.Address.Wallet.Balance += o.Amount;
+                        UserWalletService.Update(o.Address.Wallet);
                     }
                 }
             }
         }
 
-        private void CheckEosOperations(List<UserWallet> wallets)
+        private void CheckEosOperations(List<UserWalletOperation> operations)
         {
 
         }
