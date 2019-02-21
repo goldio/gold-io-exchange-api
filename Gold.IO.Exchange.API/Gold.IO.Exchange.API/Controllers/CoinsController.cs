@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Gold.IO.Exchange.API.BusinessLogic.Interfaces;
+using Gold.IO.Exchange.API.Domain.Coin;
 using Gold.IO.Exchange.API.Domain.Enum;
 using Gold.IO.Exchange.API.ViewModels;
 using Gold.IO.Exchange.API.ViewModels.Response;
@@ -22,6 +23,45 @@ namespace Gold.IO.Exchange.API.Controllers
         {
             CoinService = coinService;
             OrderService = orderService;
+        }
+
+        [HttpGet("startData")]
+        public async Task<IActionResult> StartData()
+        {
+            var btcCoin = new Coin
+            {
+                Name = "Bitcoin",
+                ShortName = "BTC",
+                IsCrypto = true
+            };
+
+            var ethCoin = new Coin
+            {
+                Name = "Ethereum",
+                ShortName = "ETH",
+                IsCrypto = true
+            };
+
+            var eosCoin = new Coin
+            {
+                Name = "EOS",
+                ShortName = "EOS",
+                IsCrypto = true
+            };
+
+            var gioCoin = new Coin
+            {
+                Name = "GOLD.IO",
+                ShortName = "GIO",
+                IsCrypto = true
+            };
+
+            CoinService.Create(btcCoin);
+            CoinService.Create(ethCoin);
+            CoinService.Create(eosCoin);
+            CoinService.Create(gioCoin);
+
+            return Ok();
         }
 
         [HttpGet]

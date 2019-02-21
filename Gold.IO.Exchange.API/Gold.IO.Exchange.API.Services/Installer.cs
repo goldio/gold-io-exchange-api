@@ -16,6 +16,7 @@ namespace Gold.IO.Exchange.API.BusinessLogic
                 .AddScoped<ICityService, CityService>()
                 .AddScoped<IFileService, FileService>()
                 .AddScoped<ICoinService, CoinService>()
+                .AddScoped<ICoinAddressService, CoinAddressService>()
                 .AddScoped<IWalletAddressService, WalletAddressService>()
                 .AddScoped<IUserWalletService, UserWalletService>()
                 .AddScoped<IUserWalletOperationService, UserWalletOperationService>()

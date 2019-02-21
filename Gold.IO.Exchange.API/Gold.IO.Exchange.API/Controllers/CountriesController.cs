@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Gold.IO.Exchange.API.BusinessLogic.Interfaces;
+using Gold.IO.Exchange.API.Domain.Locale;
 using Gold.IO.Exchange.API.ViewModels;
 using Gold.IO.Exchange.API.ViewModels.Response;
 using Microsoft.AspNetCore.Mvc;
@@ -12,15 +13,84 @@ namespace Gold.IO.Exchange.API.Controllers
     [ApiController]
     public class CountriesController : Controller
     {
+        private ILocaleService LocaleService { get; set; }
         private ICountryService CountryService { get; set; }
         private ICityService CityService { get; set; }
 
         public CountriesController([FromServices]
+            ILocaleService localeService,
             ICountryService countryService,
             ICityService cityService)
         {
+            LocaleService = localeService;
             CountryService = countryService;
             CityService = cityService;
+        }
+
+        [HttpGet("startData")]
+        public async Task<IActionResult> StartData()
+        {
+            var enLocale = new Locale
+            {
+                Name = "English",
+                LangCode = "en"
+            };
+
+            var ruLocale = new Locale
+            {
+                Name = "Russian",
+                LangCode = "Ru"
+            };
+
+            LocaleService.Create(enLocale);
+            LocaleService.Create(ruLocale);
+
+            var usCountry = new Country
+            {
+                Name = "United States of America",
+                Locale = enLocale
+            };
+
+            var ruCountry = new Country
+            {
+                Name = "Russian Federation",
+                Locale = ruLocale
+            };
+
+            CountryService.Create(usCountry);
+            CountryService.Create(ruCountry);
+
+            var nyCity = new City
+            {
+                Name = "New York",
+                Country = usCountry
+            };
+
+            var laCity = new City
+            {
+                Name = "Los Angeles",
+                Country = ruCountry
+            };
+
+            CityService.Create(nyCity);
+            CityService.Create(laCity);
+
+            var mwCity = new City
+            {
+                Name = "Moscow",
+                Country = ruCountry
+            };
+
+            var spbCity = new City
+            {
+                Name = "Saint Petersburg",
+                Country = ruCountry
+            };
+
+            CityService.Create(mwCity);
+            CityService.Create(spbCity);
+
+            return Ok();
         }
 
         [HttpGet]
