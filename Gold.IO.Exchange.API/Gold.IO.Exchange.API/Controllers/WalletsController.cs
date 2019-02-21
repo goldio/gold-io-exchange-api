@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Gold.IO.Exchange.API.BusinessLogic.Interfaces;
 using Gold.IO.Exchange.API.Domain.Enum;
 using Gold.IO.Exchange.API.Domain.User;
+using Gold.IO.Exchange.API.Utils.Helpers;
 using Gold.IO.Exchange.API.ViewModels;
 using Gold.IO.Exchange.API.ViewModels.Request;
 using Gold.IO.Exchange.API.ViewModels.Response;
@@ -40,6 +41,13 @@ namespace Gold.IO.Exchange.API.Controllers
             WalletAddressService = walletAddressService;
             WalletOperationService = walletOperationService;
             BitcoinService = bitcoinService;
+        }
+
+        [HttpGet("test")]
+        public async Task<IActionResult> Test()
+        {
+            var test = await EthereumBlockchainHelper.GetAddress();
+            return Json(new DataResponse<string> { Data = test });
         }
 
         [HttpGet("me")]

@@ -206,6 +206,31 @@ namespace Gold.IO.Exchange.API.Controllers
             return Json(new ResponseModel { Message = "Activation was successful!" });
         }
 
+        [HttpPost("recovery/password")]
+        public async Task<IActionResult> UserRecoveryPassword([FromBody] RecoveryChangePasswordRequest request)
+        {
+            var key = UserKeyService.GetAll().FirstOrDefault(x => x.KeyValue.Equals(request.Key));
+            if (key == null)
+                return Json(new ResponseModel { Success = false, Message = "Invalid key" });
+
+            if (!key.Type.Equals(UserKeyType.Recovery))
+                return Json(new ResponseModel { Success = false, Message = "Invalid key" });
+
+            if (!key.ActivationTime.Equals(DateTime.MinValue))
+                return Json(new ResponseModel { Success = false, Message = "Invalid key" });
+
+            if (!request.Password.Equals(request.RepeatPassword))
+                return Json(new ResponseModel { Success = false, Message = "Passwords don't match" });
+
+            key.ActivationTime = DateTime.UtcNow;
+            UserKeyService.Update(key);
+
+            key.User.Password = CreateMD5(request.Password);
+            UserService.Update(key.User);
+
+            return Json(new ResponseModel());
+        }
+
         [HttpPost("recovery")]
         public async Task<IActionResult> UserRecovery([FromBody] RecoveryRequest request)
         {
