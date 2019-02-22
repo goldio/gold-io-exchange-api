@@ -47,6 +47,14 @@ namespace Gold.IO.Exchange.API.Controllers
             BitcoinService = bitcoinService;
         }
 
+        [HttpGet("test")]
+
+        public async Task<IActionResult> Test()
+        {
+            var actions = EOSBlockchainHelper.GetActions();
+            return Json(actions);
+        }
+
         [HttpGet("me")]
         public async Task<IActionResult> GetMeWallets()
         {
@@ -66,7 +74,7 @@ namespace Gold.IO.Exchange.API.Controllers
             var user = UserService.GetAll().FirstOrDefault(x => x.Login == User.Identity.Name);
 
             var operations = WalletOperationService.GetAll()
-                .Where(x => x.Address.Wallet.User == user && x.Type == UserWalletOperationType.Deposit && x.Status == UserWalletOperationStatus.Completed)
+                .Where(x => x.Address.Wallet.User == user && x.Address.Type == CoinAddressType.Deposit && x.Status == UserWalletOperationStatus.Completed)
                 .Select(x => new UserWalletOperationViewModel(x))
                 .ToList();
 
@@ -79,7 +87,7 @@ namespace Gold.IO.Exchange.API.Controllers
             var user = UserService.GetAll().FirstOrDefault(x => x.Login == User.Identity.Name);
 
             var operations = WalletOperationService.GetAll()
-                .Where(x => x.Address.Wallet.User == user && x.Type == UserWalletOperationType.Withdraw)
+                .Where(x => x.Address.Wallet.User == user && x.Address.Type == CoinAddressType.Withdraw)
                 .Select(x => new UserWalletOperationViewModel(x))
                 .ToList();
 
@@ -98,11 +106,11 @@ namespace Gold.IO.Exchange.API.Controllers
             {
                 if (wallet.Coin.ShortName.Equals("ETH"))
                 {
-                    var ecKey = EthereumBlockchainHelper.GetECKey();
+                    var ethAddress = EthereumBlockchainHelper.GetAddress();
                     address = new CoinAddress
                     {
-                        PrivateKey = ecKey.GetPrivateKey(),
-                        PublicAddress = ecKey.GetPublicAddress(),
+                        PublicAddress = ethAddress,
+                        Type = CoinAddressType.Deposit,
                         IsUsing = true,
                         Wallet = wallet
                     };
@@ -125,6 +133,7 @@ namespace Gold.IO.Exchange.API.Controllers
                     address = new CoinAddress
                     {
                         PublicAddress = btcAddress,
+                        Type = CoinAddressType.Withdraw,
                         IsUsing = true,
                         Wallet = wallet
                     };
@@ -138,6 +147,7 @@ namespace Gold.IO.Exchange.API.Controllers
                     address = new CoinAddress
                     {
                         PublicAddress = memo,
+                        Type = CoinAddressType.Deposit,
                         IsUsing = true,
                         Wallet = wallet
                     };
@@ -149,7 +159,6 @@ namespace Gold.IO.Exchange.API.Controllers
                 {
                     Address = address,
                     Confirmations = 0,
-                    Type = UserWalletOperationType.Deposit,
                     Status = UserWalletOperationStatus.InProgress
                 };
 
@@ -166,12 +175,12 @@ namespace Gold.IO.Exchange.API.Controllers
         //    if (wallet == null)
         //        return Json(new ResponseModel { Success = false, Message = "Wallet not found" });
 
-        //    if (wallet.Balance > request.Amount)
+        //    if (wallet.Balance < request.Amount)
         //        return Json(new ResponseModel { Success = false, Message = "Insufficient funds" });
 
         //    var withdrawOrder = new UserWalletOperation
         //    {
-        //        Wallet = wallet,
+        //        Amount = request.Amount
         //        Address = request.Address,
         //        Confirmations = 0,
         //        Type = UserWalletOperationType.Withdraw,

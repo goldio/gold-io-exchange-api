@@ -15,9 +15,9 @@ namespace Gold.IO.Exchange.API.Storage.Mappings
             Id(u => u.ID, "id");
 
             References(e => e.Wallet, "id_wallet");
-
-            Map(u => u.PrivateKey, "private_key");
+            
             Map(u => u.PublicAddress, "public_address");
+            Map(u => u.Type, "type").CustomType<CoinAddressType>();
             Map(u => u.IsUsing, "is_using").Not.Nullable();
             Map(u => u.Deleted, "deleted").Not.Nullable();
         }
