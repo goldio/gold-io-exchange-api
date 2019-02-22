@@ -133,7 +133,16 @@ namespace Gold.IO.Exchange.API.Controllers
                 }
                 else if (wallet.Coin.ShortName.Equals("EOS"))
                 {
+                    var memo = CryptHelper.CreateMD5($"{wallet.User.Login}_{DateTime.UtcNow}");
 
+                    address = new CoinAddress
+                    {
+                        PublicAddress = memo,
+                        IsUsing = true,
+                        Wallet = wallet
+                    };
+
+                    CoinAddressService.Create(address);
                 }
 
                 var depositOrder = new UserWalletOperation
