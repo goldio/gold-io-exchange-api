@@ -17,7 +17,6 @@ namespace Gold.IO.Exchange.API.Storage.Mappings
             Map(u => u.Time, "time");
             Map(u => u.Amount, "amount");
             Map(u => u.Confirmations, "confirmation");
-            Map(u => u.Type, "type").CustomType<UserWalletOperationType>();
             Map(u => u.Status, "status").CustomType<UserWalletOperationStatus>();
             Map(u => u.Deleted, "deleted").Not.Nullable();
         }

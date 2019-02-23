@@ -1,6 +1,7 @@
 ﻿using Nethereum.Hex.HexConvertors.Extensions;
 using Nethereum.Hex.HexTypes;
 using Nethereum.Signer;
+using Nethereum.Util;
 using Nethereum.Web3;
 using Nethereum.Web3.Accounts;
 using System;
@@ -19,6 +20,14 @@ namespace Gold.IO.Exchange.API.Utils.Helpers
         public static EthECKey GetECKey()
         {
             return new EthECKey(PrivateKey);
+        }
+
+        public static string GetAddress()
+        {
+            var initaddr = new Sha3Keccack().CalculateHash(GetECKey().GetPubKeyNoPrefix());
+            var addr = new byte[initaddr.Length - 12];
+            Array.Copy(initaddr, 12, addr, 0, initaddr.Length - 12);
+            return new AddressUtil().ConvertToChecksumAddress(addr.ToHex());
         }
     }
 }

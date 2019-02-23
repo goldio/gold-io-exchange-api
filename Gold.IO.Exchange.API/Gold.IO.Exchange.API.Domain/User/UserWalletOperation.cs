@@ -11,7 +11,6 @@ namespace Gold.IO.Exchange.API.Domain.User
         public virtual CoinAddress Address { get; set; }
         public virtual DateTime Time { get; set; }
         public virtual double Amount { get; set; }
-        public virtual UserWalletOperationType Type { get; set; }
         public virtual long Confirmations { get; set; }
         public virtual UserWalletOperationStatus Status { get; set; }
         public virtual bool Deleted { get; set; }

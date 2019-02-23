@@ -10,8 +10,8 @@ namespace Gold.IO.Exchange.API.ViewModels
     {
         public long ID { get; set; }
         public UserWalletViewModel Wallet { get; set; }
-        public string PrivateKey { get; set; }
         public string PublicAddress { get; set; }
+        public CoinAddressType Type { get; set; }
         public bool IsUsing { get; set; }
         
         public CoinAddressViewModel() { }
@@ -20,8 +20,8 @@ namespace Gold.IO.Exchange.API.ViewModels
         {
             ID = address.ID;
             Wallet = new UserWalletViewModel(address.Wallet);
-            PrivateKey = address.PrivateKey;
             PublicAddress = address.PublicAddress;
+            Type = address.Type;
             IsUsing = address.IsUsing;
         }
     }

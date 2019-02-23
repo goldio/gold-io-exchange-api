@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Gold.IO.Exchange.API.Domain.Enum
+namespace Gold.IO.Exchange.API.Domain.Coin
 {
-    public enum UserWalletOperationType
+    public enum CoinAddressType
     {
         Deposit = 0,
         Withdraw = 1
