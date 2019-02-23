@@ -9,6 +9,11 @@
     <PackageReference Include="Nethereum.Geth" Version="3.0.0" />
     <PackageReference Include="Nethereum.HdWallet" Version="3.0.0" />
     <PackageReference Include="Nethereum.Web3" Version="3.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Gold.IO.Exchange.EOS\Gold.IO.Exchange.EOS.csproj" />
   </ItemGroup>
 
 </Project>

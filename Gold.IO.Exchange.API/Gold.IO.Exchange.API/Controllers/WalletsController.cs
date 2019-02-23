@@ -47,6 +47,13 @@ namespace Gold.IO.Exchange.API.Controllers
             BitcoinService = bitcoinService;
         }
 
+        [HttpGet("test")]
+        public async Task<IActionResult> Test()
+        {
+            var actions = await EOSBlockchainHelper.GetActions();
+            return Json(actions);
+        }
+
         [HttpGet("me")]
         public async Task<IActionResult> GetMeWallets()
         {
