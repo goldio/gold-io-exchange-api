@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Gold.IO.Exchange.API.BlockExplorer.Сryptolions;
 using Gold.IO.Exchange.API.BusinessLogic.Interfaces;
 using Gold.IO.Exchange.API.Domain.Coin;
 using Gold.IO.Exchange.API.Domain.Enum;
@@ -50,8 +51,11 @@ namespace Gold.IO.Exchange.API.Controllers
         [HttpGet("test")]
         public async Task<IActionResult> Test()
         {
-            var actions = await EOSBlockchainHelper.GetActions();
-            return Json(actions);
+            using (var client = new СryptolionsClient())
+            {
+                var actions = await client.GetActions();
+                return Json(actions);
+            }
         }
 
         [HttpGet("me")]
