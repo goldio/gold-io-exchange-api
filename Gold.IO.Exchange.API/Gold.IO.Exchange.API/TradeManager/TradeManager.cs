@@ -33,51 +33,54 @@ namespace Gold.IO.Exchange.API.TradeManager
             {
                 foreach (var sellOrder in sellOrders)
                 {
-                    if (sellOrder.Price <= buyOrder.Price)
+                    if (sellOrder.User != buyOrder.User)
                     {
-                        if (sellOrder.Balance > buyOrder.Balance)
+                        if (sellOrder.Price <= buyOrder.Price)
                         {
-                            buyOrder.Balance = 0;
-                            buyOrder.Status = OrderStatus.Closed;
-
-                            sellOrder.Balance -= buyOrder.Balance;
-                            if (sellOrder.Balance == 0)
-                                sellOrder.Status = OrderStatus.Closed;
-
-                            buyOrders.Remove(buyOrder);
-                            OrderService.Update(buyOrder);
-
-                            sellOrders.Remove(sellOrder);
-                            OrderService.Update(sellOrder);
-                        }
-                        else if (sellOrder.Balance < buyOrder.Balance)
-                        {
-                            buyOrder.Balance -= sellOrder.Balance;
-                            if (buyOrder.Balance == 0)
+                            if (sellOrder.Balance > buyOrder.Balance)
+                            {
+                                buyOrder.Balance = 0;
                                 buyOrder.Status = OrderStatus.Closed;
 
-                            sellOrder.Balance = 0;
-                            sellOrder.Status = OrderStatus.Closed;
+                                sellOrder.Balance -= buyOrder.Balance;
+                                if (sellOrder.Balance == 0)
+                                    sellOrder.Status = OrderStatus.Closed;
 
-                            buyOrders.Remove(buyOrder);
-                            OrderService.Update(buyOrder);
+                                buyOrders.Remove(buyOrder);
+                                OrderService.Update(buyOrder);
 
-                            sellOrders.Remove(sellOrder);
-                            OrderService.Update(sellOrder);
-                        }
-                        else if (sellOrder.Balance == buyOrder.Balance)
-                        {
-                            buyOrder.Balance = 0;
-                            buyOrder.Status = OrderStatus.Closed;
+                                sellOrders.Remove(sellOrder);
+                                OrderService.Update(sellOrder);
+                            }
+                            else if (sellOrder.Balance < buyOrder.Balance)
+                            {
+                                buyOrder.Balance -= sellOrder.Balance;
+                                if (buyOrder.Balance == 0)
+                                    buyOrder.Status = OrderStatus.Closed;
 
-                            sellOrder.Balance = 0;
-                            sellOrder.Status = OrderStatus.Closed;
+                                sellOrder.Balance = 0;
+                                sellOrder.Status = OrderStatus.Closed;
 
-                            buyOrders.Remove(buyOrder);
-                            OrderService.Update(buyOrder);
+                                buyOrders.Remove(buyOrder);
+                                OrderService.Update(buyOrder);
 
-                            sellOrders.Remove(sellOrder);
-                            OrderService.Update(sellOrder);
+                                sellOrders.Remove(sellOrder);
+                                OrderService.Update(sellOrder);
+                            }
+                            else if (sellOrder.Balance == buyOrder.Balance)
+                            {
+                                buyOrder.Balance = 0;
+                                buyOrder.Status = OrderStatus.Closed;
+
+                                sellOrder.Balance = 0;
+                                sellOrder.Status = OrderStatus.Closed;
+
+                                buyOrders.Remove(buyOrder);
+                                OrderService.Update(buyOrder);
+
+                                sellOrders.Remove(sellOrder);
+                                OrderService.Update(sellOrder);
+                            }
                         }
                     }
                 }
