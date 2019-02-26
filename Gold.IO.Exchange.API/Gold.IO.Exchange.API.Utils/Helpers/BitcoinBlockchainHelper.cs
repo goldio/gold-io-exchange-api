@@ -10,7 +10,7 @@ namespace Gold.IO.Exchange.API.Utils.Helpers
 {
     public static class BitcoinBlockchainHelper
     {
-        public static string GetAddress(string pKey, uint derivations)
+        public static string GetAddress()
         {
             Key privateKey = new Key();
             PubKey publicKey = privateKey.PubKey;

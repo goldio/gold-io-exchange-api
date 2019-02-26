@@ -122,16 +122,16 @@ namespace Gold.IO.Exchange.API.Controllers
                 }
                 else if (wallet.Coin.ShortName.Equals("BTC"))
                 {
-                    var account = CoinAccountService.GetAll().FirstOrDefault(x => x.Coin == wallet.Coin);
-                    if (account == null)
-                        return Json(new ResponseModel { Success = false, Message = "Private key not found" });
+                    //var account = CoinAccountService.GetAll().FirstOrDefault(x => x.Coin == wallet.Coin);
+                    //if (account == null)
+                    //    return Json(new ResponseModel { Success = false, Message = "Private key not found" });
 
-                    var btcAddress = BitcoinBlockchainHelper.GetAddress(account.AccountKey, (uint)account.Derivations);
+                    var btcAddress = BitcoinBlockchainHelper.GetAddress();
                     if (btcAddress == null)
                         return Json(new ResponseModel { Success = false, Message = "Address error" });
 
-                    account.Derivations++;
-                    CoinAccountService.Update(account);
+                    //account.Derivations++;
+                    //CoinAccountService.Update(account);
 
                     address = new CoinAddress
                     {
