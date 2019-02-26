@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="eos-sharp" Version="2.0.1" />
+    <PackageReference Include="NBXplorer.Client" Version="2.0.0.3" />
     <PackageReference Include="Nethereum.Accounts" Version="3.0.0" />
     <PackageReference Include="Nethereum.Geth" Version="3.0.0" />
     <PackageReference Include="Nethereum.HdWallet" Version="3.0.0" />

@@ -115,26 +115,29 @@ namespace Gold.IO.Exchange.API.TransactionsManager
                     if (o.Address.Wallet.Balance != addressBalance)
                     {
                         var tx = address.Transactions.FirstOrDefault();
-                        var txConfs = GetTransactionConfirmations(tx);
-
-                        if (txConfs < 2)
+                        if (tx != null)
                         {
-                            o.Address.IsUsing = false;
-                            CoinAddressService.Update(o.Address);
+                            var txConfs = GetTransactionConfirmations(tx);
 
-                            o.Amount = (double)address.FinalBalance.GetBtc();
-                            o.Confirmations = txConfs;
-                            o.Time = tx.Time;
-                            o.Status = UserWalletOperationStatus.InProgress;
-                            UserWalletOperationService.Update(o);
-                        }
-                        else if (txConfs > 1)
-                        {
-                            o.Status = UserWalletOperationStatus.Completed;
-                            UserWalletOperationService.Update(o);
+                            if (txConfs < 2)
+                            {
+                                o.Address.IsUsing = false;
+                                CoinAddressService.Update(o.Address);
 
-                            o.Address.Wallet.Balance += o.Amount;
-                            UserWalletService.Update(o.Address.Wallet);
+                                o.Amount = (double)address.FinalBalance.GetBtc();
+                                o.Confirmations = txConfs;
+                                o.Time = tx.Time;
+                                o.Status = UserWalletOperationStatus.InProgress;
+                                UserWalletOperationService.Update(o);
+                            }
+                            else if (txConfs > 1)
+                            {
+                                o.Status = UserWalletOperationStatus.Completed;
+                                UserWalletOperationService.Update(o);
+
+                                o.Address.Wallet.Balance += o.Amount;
+                                UserWalletService.Update(o.Address.Wallet);
+                            }
                         }
                     }
                 }

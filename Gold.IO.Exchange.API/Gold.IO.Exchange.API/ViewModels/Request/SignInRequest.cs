@@ -9,5 +9,8 @@ namespace Gold.IO.Exchange.API.ViewModels.Request
 
         [Required]
         public string Password { get; set; }
+
+        [Required]
+        public bool Remember { get; set; }
     }
 }

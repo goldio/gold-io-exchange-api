@@ -148,7 +148,7 @@ namespace Gold.IO.Exchange.API.Controllers
                 });
 
             var identity = GetIdentity(request.Login, CreateMD5(request.Password));
-            var token = GetSecurityToken(identity, user.Role);
+            var token = GetSecurityToken(identity, user.Role, request.Remember);
 
             var session = new UserSession
             {
@@ -297,10 +297,15 @@ namespace Gold.IO.Exchange.API.Controllers
             return claimsIdentity;
         }
 
-        private SecurityTokenViewModel GetSecurityToken(ClaimsIdentity identity, UserRole role)
+        private SecurityTokenViewModel GetSecurityToken(ClaimsIdentity identity, UserRole role, bool remember)
         {
             var now = DateTime.UtcNow;
-            var expires = now.Add(TimeSpan.FromMinutes(AuthOptions.LIFETIME));
+            var expires = now;
+
+            if (remember)
+                expires = now.Add(TimeSpan.MaxValue);
+            else
+                expires = now.Add(TimeSpan.FromMinutes(AuthOptions.LIFETIME));
 
             var jwt = new JwtSecurityToken(
                     issuer: AuthOptions.ISSUER,

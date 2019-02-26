@@ -105,7 +105,7 @@ namespace Gold.IO.Exchange.API.Controllers
                 return Json(new ResponseModel { Success = false, Message = "Wallet not found" });
 
             var address = CoinAddressService.GetAll().FirstOrDefault(x => x.Wallet == wallet);
-            if (address == null || !address.IsUsing)
+            if (address == null || !address.IsUsing || address.Type != CoinAddressType.Deposit)
             {
                 if (wallet.Coin.ShortName.Equals("ETH"))
                 {
@@ -136,7 +136,7 @@ namespace Gold.IO.Exchange.API.Controllers
                     address = new CoinAddress
                     {
                         PublicAddress = btcAddress,
-                        Type = CoinAddressType.Withdraw,
+                        Type = CoinAddressType.Deposit,
                         IsUsing = true,
                         Wallet = wallet
                     };
@@ -171,31 +171,40 @@ namespace Gold.IO.Exchange.API.Controllers
             return Json(new DepositResponse { Address = address.PublicAddress });
         }
 
-        //[HttpPost("{id}/withdraw")]
-        //public async Task<IActionResult> Withdraw([FromBody] WithdrawRequest request, long id)
-        //{
-        //    var wallet = WalletService.Get(id);
-        //    if (wallet == null)
-        //        return Json(new ResponseModel { Success = false, Message = "Wallet not found" });
+        [HttpPost("{id}/withdraw")]
+        public async Task<IActionResult> Withdraw([FromBody] WithdrawRequest request, long id)
+        {
+            var wallet = WalletService.Get(id);
+            if (wallet == null)
+                return Json(new ResponseModel { Success = false, Message = "Wallet not found" });
 
-        //    if (wallet.Balance < request.Amount)
-        //        return Json(new ResponseModel { Success = false, Message = "Insufficient funds" });
+            if (wallet.Balance < request.Amount)
+                return Json(new ResponseModel { Success = false, Message = "Insufficient funds" });
 
-        //    var withdrawOrder = new UserWalletOperation
-        //    {
-        //        Amount = request.Amount
-        //        Address = request.Address,
-        //        Confirmations = 0,
-        //        Type = UserWalletOperationType.Withdraw,
-        //        Status = UserWalletOperationStatus.InProgress
-        //    };
+            var address = new CoinAddress
+            {
+                PublicAddress = request.Address,
+                IsUsing = true,
+                Type = CoinAddressType.Withdraw,
+                Wallet = wallet
+            };
 
-        //    WalletOperationService.Create(withdrawOrder);
+            CoinAddressService.Create(address);
 
-        //    wallet.Balance -= request.Amount;
-        //    WalletService.Update(wallet);
+            var withdrawOrder = new UserWalletOperation
+            {
+                Amount = request.Amount,
+                Address = address,
+                Confirmations = 0,
+                Status = UserWalletOperationStatus.InProgress
+            };
 
-        //    return Json(new ResponseModel());
-        //}
+            WalletOperationService.Create(withdrawOrder);
+
+            wallet.Balance -= request.Amount;
+            WalletService.Update(wallet);
+
+            return Json(new ResponseModel());
+        }
     }
 }

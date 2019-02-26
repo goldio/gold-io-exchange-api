@@ -14,7 +14,7 @@ namespace Gold.IO.Exchange.API.Utils.Helpers
         public static string SMTP_SERVER = "smtp.gmail.com";
         public static int SMTP_PORT = 587;
         public static string SMTP_LOGIN = "nazar.vasheniak@gmail.com";
-        public static string SMTP_PASSWORD = "DfityzrYfpfhJktujdbx";
+        public static string SMTP_PASSWORD = "82356123neron";
 
         /// <summary>
         /// Send Mail via SMTP method
