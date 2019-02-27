@@ -81,7 +81,7 @@ namespace Gold.IO.Exchange.API
             app.MapWebSocketManager("/notifications", notifMessageHandler);
 
             var tradeManager = serviceProvider.GetService<TradeManager.TradeManager>();
-            tradeManager.SetServices(serviceProvider.GetService<IOrderService>());
+            tradeManager.SetServices(serviceProvider.GetService<IOrderService>(), serviceProvider.GetService<IUserWalletService>());
 
             var transactionsManager = serviceProvider.GetService<TransactionsManager.TransactionsManager>();
             transactionsManager.SetServices(
