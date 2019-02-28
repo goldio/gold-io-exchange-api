@@ -29,9 +29,9 @@ namespace Gold.IO.Exchange.API.TradeManager
 
         public void CheckOrders(object source, ElapsedEventArgs e)
         {
-            var orders = OrderService.GetAll().Where(x => x.Status == OrderStatus.Open).ToList();
-            var buyOrders = orders.Where(x => x.Type == OrderType.Buy).ToList();
-            var sellOrders = orders.Where(x => x.Type == OrderType.Sell).ToList();
+            var orders = OrderService.GetAll().Where(x => x.Status == OrderStatus.Open);
+            var buyOrders = orders.Where(x => x.Type == OrderType.Buy);
+            var sellOrders = orders.Where(x => x.Type == OrderType.Sell);
 
             foreach (var buyOrder in buyOrders)
             {
@@ -55,24 +55,21 @@ namespace Gold.IO.Exchange.API.TradeManager
                                 sellWalletQuote.Balance += buyOrder.Balance * sellOrder.Price;
                                 sellWalletBase.Balance -= buyOrder.Balance;
 
-                                UserWalletService.Update(buyWalletQuote);
-                                UserWalletService.Update(buyWalletBase);
-
-                                UserWalletService.Update(sellWalletBase);
-                                UserWalletService.Update(sellWalletQuote);
-
                                 sellOrder.Balance -= buyOrder.Balance;
                                 buyOrder.Balance = 0;
                                 buyOrder.Status = OrderStatus.Closed;
 
                                 if (sellOrder.Balance == 0)
                                     sellOrder.Status = OrderStatus.Closed;
-
-                                buyOrders.Remove(buyOrder);
+                                
                                 OrderService.Update(buyOrder);
-
-                                sellOrders.Remove(sellOrder);
                                 OrderService.Update(sellOrder);
+
+                                UserWalletService.Update(buyWalletQuote);
+                                UserWalletService.Update(buyWalletBase);
+
+                                UserWalletService.Update(sellWalletBase);
+                                UserWalletService.Update(sellWalletQuote);
                             }
                             else if (sellOrder.Balance < buyOrder.Balance)
                             {
@@ -82,24 +79,21 @@ namespace Gold.IO.Exchange.API.TradeManager
                                 sellWalletQuote.Balance += buyOrder.Balance * sellOrder.Price;
                                 sellWalletBase.Balance -= buyOrder.Balance;
 
-                                UserWalletService.Update(buyWalletQuote);
-                                UserWalletService.Update(buyWalletBase);
-
-                                UserWalletService.Update(sellWalletBase);
-                                UserWalletService.Update(sellWalletQuote);
-
                                 buyOrder.Balance -= sellOrder.Balance;
                                 if (buyOrder.Balance == 0)
                                     buyOrder.Status = OrderStatus.Closed;
 
                                 sellOrder.Balance = 0;
                                 sellOrder.Status = OrderStatus.Closed;
-
-                                buyOrders.Remove(buyOrder);
+                                
                                 OrderService.Update(buyOrder);
-
-                                sellOrders.Remove(sellOrder);
                                 OrderService.Update(sellOrder);
+
+                                UserWalletService.Update(buyWalletQuote);
+                                UserWalletService.Update(buyWalletBase);
+
+                                UserWalletService.Update(sellWalletBase);
+                                UserWalletService.Update(sellWalletQuote);
                             }
                             else if (sellOrder.Balance == buyOrder.Balance)
                             {
@@ -109,23 +103,20 @@ namespace Gold.IO.Exchange.API.TradeManager
                                 sellWalletQuote.Balance += buyOrder.Balance * sellOrder.Price;
                                 sellWalletBase.Balance -= buyOrder.Balance;
 
-                                UserWalletService.Update(buyWalletQuote);
-                                UserWalletService.Update(buyWalletBase);
-
-                                UserWalletService.Update(sellWalletBase);
-                                UserWalletService.Update(sellWalletQuote);
-
                                 buyOrder.Balance = 0;
                                 buyOrder.Status = OrderStatus.Closed;
                                 
                                 sellOrder.Balance = 0;
                                 sellOrder.Status = OrderStatus.Closed;
-
-                                buyOrders.Remove(buyOrder);
+                                
                                 OrderService.Update(buyOrder);
-
-                                sellOrders.Remove(sellOrder);
                                 OrderService.Update(sellOrder);
+
+                                UserWalletService.Update(buyWalletQuote);
+                                UserWalletService.Update(buyWalletBase);
+
+                                UserWalletService.Update(sellWalletBase);
+                                UserWalletService.Update(sellWalletQuote);
                             }
                         }
                     }
