@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Timers;
 using Info.Blockchain.API.Models;
 using Gold.IO.Exchange.API.BlockExplorer.Blockcypher;
+using Gold.IO.Exchange.API.BlockExplorer.Сryptolions;
 
 namespace Gold.IO.Exchange.API.TransactionsManager
 {
@@ -47,7 +48,7 @@ namespace Gold.IO.Exchange.API.TransactionsManager
 
             CheckBitcoinOperations(operations.Where(x => x.Address.Wallet.Coin.ShortName == "BTC" && x.Status == UserWalletOperationStatus.InProgress).ToList());
             CheckEthereumOperations(operations.Where(x => x.Address.Wallet.Coin.ShortName == "ETH" && x.Status == UserWalletOperationStatus.InProgress).ToList());
-            CheckEosOperations(operations.Where(x => x.Address.Wallet.Coin.ShortName == "EOS" && x.Status == UserWalletOperationStatus.InProgress).ToList());
+            //CheckEosOperations(operations.Where(x => x.Address.Wallet.Coin.ShortName == "EOS" && x.Status == UserWalletOperationStatus.InProgress).ToList());
         }
 
         public long GetTransactionConfirmations(Transaction tx)
@@ -80,19 +81,6 @@ namespace Gold.IO.Exchange.API.TransactionsManager
                 return blocksCountTask.Result - txTask.Result.BlockHeight;
             }
         }
-
-        //private void UpdateLocalWallet(Address address)
-        //{
-        //    var wallet = UserWalletService.GetAll().FirstOrDefault(x => x..Address == address.Base58Check);
-        //    if (wallet == null)
-        //        return;
-
-        //    var addressBalance = (double)address.FinalBalance.GetBtc();
-        //    if (wallet.Balance < addressBalance)
-        //    {
-                
-        //    }
-        //}
 
         private void CheckBitcoinOperations(List<UserWalletOperation> operations)
         {
@@ -187,7 +175,17 @@ namespace Gold.IO.Exchange.API.TransactionsManager
 
         private void CheckEosOperations(List<UserWalletOperation> operations)
         {
+            using (var client = new СryptolionsClient())
+            {
+                var actionsTask = client.GetActions();
+                actionsTask.Wait();
 
+                var actions = actionsTask.Result;
+                foreach (var a in actions)
+                {
+                    
+                }
+            }
         }
 
         private double ConvertToWei(double amountInEth)

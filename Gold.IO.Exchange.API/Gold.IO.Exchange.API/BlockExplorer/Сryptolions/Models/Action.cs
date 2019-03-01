@@ -20,7 +20,23 @@ namespace Gold.IO.Exchange.API.BlockExplorer.Сryptolions.Models
         [JsonProperty("authorization")]
         public List<Authorization> Authorization { get; set; }
 
+        private ActionData _data { get; set; }
+
         [JsonProperty("data")]
-        public ActionData Data { get; set; }
+        public ActionData Data
+        {
+            get => _data;
+            set
+            {
+                if (value.GetType() == typeof(ActionData))
+                {
+                    _data = value;
+                    return;
+                }
+
+                _data = new ActionData();
+                return;
+            }
+        }
     }
 }
