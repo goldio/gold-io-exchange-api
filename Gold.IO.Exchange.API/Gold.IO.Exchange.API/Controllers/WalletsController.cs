@@ -204,6 +204,14 @@ namespace Gold.IO.Exchange.API.Controllers
             wallet.Balance -= request.Amount;
             WalletService.Update(wallet);
 
+            if (wallet.Coin.ShortName.Equals("EOS") || wallet.Coin.ShortName.Equals("GIO"))
+            {
+                using (var cryptolions = new СryptolionsClient())
+                {
+                    await cryptolions.CreateWithdrawalRequest(withdrawOrder.Address.PublicAddress, withdrawOrder.Amount, wallet.Coin.ShortName);
+                }
+            }
+
             return Json(new ResponseModel());
         }
     }

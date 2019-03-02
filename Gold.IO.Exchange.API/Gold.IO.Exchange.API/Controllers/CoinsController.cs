@@ -94,19 +94,16 @@ namespace Gold.IO.Exchange.API.Controllers
                 .Select(x => new CoinViewModel(x))
                 .ToList();
 
-            if (coins == null || coins.Count == 0)
-                return Json(new ResponseModel { Success = false, Message = "Coins list is empty" });
+            if (coins == null || coins.Count < 2)
+                return Json(new ResponseModel { Success = false, Message = "Coins list is empty or < 2" });
 
             var pairs = new HashSet<PairViewModel>();
-            for (var i = 0; i < coins.Count; i++)
+            for (var i = 0; i < coins.Count -1; i++)
             {
-                var list = coins.Skip(i).ToList();
-                for (var j = 0; j < list.Count; j++)
+                for (var j = 1; j < coins.Count; j++)
                 {
-                    if (j != list.Count - 1)
-                    {
-                        pairs.Add(new PairViewModel(list[j], list[j + 1]));
-                    }
+                    if (!coins[i].Equals(coins[j]) && j > i)
+                        pairs.Add(new PairViewModel(coins[i], coins[j]));
                 }
                 
             }

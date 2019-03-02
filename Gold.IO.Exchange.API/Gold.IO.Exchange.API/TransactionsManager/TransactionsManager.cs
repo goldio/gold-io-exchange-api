@@ -181,9 +181,27 @@ namespace Gold.IO.Exchange.API.TransactionsManager
                 actionsTask.Wait();
 
                 var actions = actionsTask.Result;
-                foreach (var a in actions)
+                foreach (var o in operations)
                 {
-                    
+                    foreach (var a in actions)
+                    {
+                        if (o.Address.PublicAddress == a.Action.Data.Memo && a.Action.Data.To == "goldioioioio")
+                        {
+                            var amount = double.Parse(a.Action.Data.Quantity);
+
+                            o.Address.IsUsing = false;
+                            CoinAddressService.Update(o.Address);
+
+                            o.Address.Wallet.Balance += amount;
+                            UserWalletService.Update(o.Address.Wallet);
+
+                            o.Confirmations = 1;
+                            o.Amount = amount;
+                            o.Time = a.BlockTime;
+                            o.Status = UserWalletOperationStatus.Completed;
+                            UserWalletOperationService.Update(o);
+                        }
+                    }
                 }
             }
         }

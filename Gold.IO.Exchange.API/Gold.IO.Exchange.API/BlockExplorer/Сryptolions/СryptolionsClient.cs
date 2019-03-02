@@ -1,4 +1,8 @@
-﻿using Gold.IO.Exchange.API.BlockExplorer.Сryptolions.Models;
+﻿using EosSharp;
+using EosSharp.Core;
+using EosSharp.Core.Api.v1;
+using EosSharp.Core.Providers;
+using Gold.IO.Exchange.API.BlockExplorer.Сryptolions.Models;
 using Gold.IO.Exchange.API.BlockExplorer.Сryptolions.Models.Response;
 using Gold.IO.Exchange.API.Utils.Extensions;
 using Newtonsoft.Json;
@@ -13,12 +17,20 @@ namespace Gold.IO.Exchange.API.BlockExplorer.Сryptolions
     public class СryptolionsClient : IDisposable
     {
         private const string BaseUrl = @"https://history.cryptolions.io";
-        //private const string Account = "eosiaaaaaaaa";
-        private const string Account = "goldioioioio";
+        private const string DepositAccount = "eosiaaaaaaaa";
+        private const string WithdrawAccount = "zengjianhong";
+
+        private Eos eos = new Eos(new EosConfigurator()
+        {
+            HttpEndpoint = "https://mainnet.eoscannon.io",
+            ChainId = "aca376f206b8fc25a6ed44dbdc66547c36c6c33e3a119ffbeaef943642f0e906",
+            ExpireSeconds = 60,
+            SignProvider = new DefaultSignProvider("5HpT3dWxscoCTrWE3r9H13NuupAxLH77y2CUhsfsKFKm48VXVhF")
+        });
 
         public СryptolionsClient() { }
 
-        public async Task<List<GlobalAction>> GetActions(int limit = 1000)
+        public async Task<List<Models.GlobalAction>> GetActions(int limit = 1000)
         {
             using (var client = new HttpClient())
             {
@@ -29,18 +41,48 @@ namespace Gold.IO.Exchange.API.BlockExplorer.Сryptolions
 
                 var builder = new UriBuilder(BaseUrl)
                 {
-                    Path = $"/v1/history/get_actions/{Account}",
+                    Path = $"/v1/history/get_actions/{DepositAccount}",
                     Query = properties.ToQueryString()
                 };
 
                 var response = await client.GetAsync(builder.Uri);
                 var content = await response.Content.ReadAsStringAsync();
 
-                var res = JsonConvert.DeserializeObject<GetActionsResponse>(content);
-                var result = res.Actions.Where(x => x.Action.Name.Equals("transfer") && x.Action.Data.To.Equals(Account));
+                var res = JsonConvert.DeserializeObject<Models.Response.GetActionsResponse>(content);
+                var result = res.Actions.Where(x => x.Action.Name.Equals("transfer") && x.Action.Data.To.Equals(DepositAccount));
 
                 return result.ToList();
             }
+        }
+
+        public async Task<string> CreateWithdrawalRequest(string to, double amount, string coin)
+        {
+            string amountStr = $"{String.Format("{0:0.0000}", amount).Replace(",", ".")} {coin}";
+
+            var result = await eos.CreateTransaction(new Transaction()
+            {
+                actions = new List<EosSharp.Core.Api.v1.Action>()
+                {
+                    new EosSharp.Core.Api.v1.Action()
+                    {
+                        account = "zengjianhong",
+                        authorization = new List<PermissionLevel>()
+                        {
+                            new PermissionLevel() {actor = "zengjianhong", permission = "active" }
+                        },
+                        name = "transfer",
+                        data = new Dictionary<string, string>()
+                        {
+                            { "from", "zengjianhong" },
+                            { "to", to },
+                            { "quantity", amountStr },
+                            { "memo", "" }
+                        }
+                    }
+                }
+            });
+
+            return result;
         }
 
         #region IDisposable Support
