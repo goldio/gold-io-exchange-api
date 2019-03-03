@@ -103,7 +103,7 @@ namespace Gold.IO.Exchange.API.Controllers
                 for (var j = 1; j < coins.Count; j++)
                 {
                     if (!coins[i].Equals(coins[j]) && j > i)
-                        pairs.Add(new PairViewModel(coins[i], coins[j]));
+                        pairs.Add(new PairViewModel(coins[j], coins[i]));
                 }
                 
             }

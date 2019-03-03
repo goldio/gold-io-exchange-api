@@ -1,6 +1,7 @@
 ﻿using Gold.IO.Exchange.API.BusinessLogic.Interfaces;
 using Gold.IO.Exchange.API.Domain.Enum;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Timers;
 
 namespace Gold.IO.Exchange.API.TradeManager
@@ -10,12 +11,14 @@ namespace Gold.IO.Exchange.API.TradeManager
         private IOrderService OrderService { get; set; }
         private IUserWalletService UserWalletService { get; set; }
 
+        private bool IsWorking { get; set; } = false;
+
         public TradeManager()
         {
-            //var myTimer = new Timer();
-            //myTimer.Elapsed += new ElapsedEventHandler(CheckOrders);
-            //myTimer.Interval = 10000;
-            //myTimer.Start();
+            var myTimer = new Timer();
+            myTimer.Elapsed += new ElapsedEventHandler(CheckOrders);
+            myTimer.Interval = 10000;
+            myTimer.Start();
         }
 
         public void SetServices(IOrderService orderService, IUserWalletService userWalletService)
@@ -29,6 +32,14 @@ namespace Gold.IO.Exchange.API.TradeManager
 
         public void CheckOrders(object source, ElapsedEventArgs e)
         {
+            if (IsWorking)
+                return;
+
+            if (OrderService == null || UserWalletService == null)
+                return;
+
+            IsWorking = true;
+
             var orders = OrderService.GetAll().Where(x => x.Status == OrderStatus.Open);
             var buyOrders = orders.Where(x => x.Type == OrderType.Buy);
             var sellOrders = orders.Where(x => x.Type == OrderType.Sell);
@@ -122,6 +133,8 @@ namespace Gold.IO.Exchange.API.TradeManager
                     }
                 }
             }
+
+            IsWorking = false;
         }
     }
 }
