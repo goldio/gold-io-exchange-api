@@ -19,6 +19,8 @@ namespace Gold.IO.Exchange.API.TransactionsManager
         private IUserWalletOperationService UserWalletOperationService { get; set; }
         private ICoinAddressService CoinAddressService { get; set; }
 
+        private bool IsWorking { get; set; } = false;
+
         public TransactionsManager()
         {
             var myTimer = new Timer();
@@ -44,11 +46,18 @@ namespace Gold.IO.Exchange.API.TransactionsManager
 
         public void CheckOperations(object source, ElapsedEventArgs e)
         {
+            if (IsWorking)
+                return;
+
+            IsWorking = true;
+
             var operations = UserWalletOperationService.GetAll().ToList();
 
             CheckBitcoinOperations(operations.Where(x => x.Address.Wallet.Coin.ShortName == "BTC" && x.Status == UserWalletOperationStatus.InProgress).ToList());
             CheckEthereumOperations(operations.Where(x => x.Address.Wallet.Coin.ShortName == "ETH" && x.Status == UserWalletOperationStatus.InProgress).ToList());
-            //CheckEosOperations(operations.Where(x => x.Address.Wallet.Coin.ShortName == "EOS" && x.Status == UserWalletOperationStatus.InProgress).ToList());
+            CheckEosOperations(operations.Where(x => x.Address.Wallet.Coin.ShortName == "EOS" || x.Address.Wallet.Coin.ShortName == "GIO" && x.Status == UserWalletOperationStatus.InProgress).ToList());
+
+            IsWorking = false;
         }
 
         public long GetTransactionConfirmations(Transaction tx)

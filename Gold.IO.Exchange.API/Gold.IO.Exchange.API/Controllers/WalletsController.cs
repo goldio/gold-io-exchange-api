@@ -143,9 +143,9 @@ namespace Gold.IO.Exchange.API.Controllers
 
                     CoinAddressService.Create(address);
                 }
-                else if (wallet.Coin.ShortName.Equals("EOS"))
+                else if (wallet.Coin.ShortName.Equals("EOS") || wallet.Coin.ShortName.Equals("GIO"))
                 {
-                    var memo = CryptHelper.CreateMD5($"{wallet.User.Login}_{DateTime.UtcNow}");
+                    var memo = CryptHelper.CreateMD5($"{wallet.User.Login}_{DateTime.UtcNow}").Substring(0, 12);
 
                     address = new CoinAddress
                     {
