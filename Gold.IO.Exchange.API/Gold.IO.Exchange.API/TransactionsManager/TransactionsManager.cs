@@ -194,7 +194,7 @@ namespace Gold.IO.Exchange.API.TransactionsManager
                 {
                     foreach (var a in actions)
                     {
-                        if (o.Address.PublicAddress == a.Action.Data.Memo && a.Action.Data.To == "goldioioioio")
+                        if (o.Address.PublicAddress == a.Action.Data.Memo && a.Action.Data.To == "eosiaaaaaaaa")
                         {
                             var amount = double.Parse(a.Action.Data.Quantity);
 
