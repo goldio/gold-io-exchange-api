@@ -17,7 +17,7 @@ namespace Gold.IO.Exchange.API.TradeManager
         {
             var myTimer = new Timer();
             myTimer.Elapsed += new ElapsedEventHandler(CheckOrders);
-            myTimer.Interval = 10000;
+            myTimer.Interval = 30000;
             myTimer.Start();
         }
 
