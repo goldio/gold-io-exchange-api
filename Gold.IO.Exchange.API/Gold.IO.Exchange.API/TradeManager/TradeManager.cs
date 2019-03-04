@@ -61,7 +61,7 @@ namespace Gold.IO.Exchange.API.TradeManager
                             if (sellOrder.Balance > buyOrder.Balance)
                             {
                                 buyWalletBase.Balance += sellOrder.Balance;
-                                buyWalletQuote.Balance -= sellOrder.Balance * buyOrder.Price;
+                                buyWalletQuote.Balance -= sellOrder.Balance * sellOrder.Price;
 
                                 sellWalletQuote.Balance += buyOrder.Balance * sellOrder.Price;
                                 sellWalletBase.Balance -= buyOrder.Balance;
@@ -85,7 +85,7 @@ namespace Gold.IO.Exchange.API.TradeManager
                             else if (sellOrder.Balance < buyOrder.Balance)
                             {
                                 buyWalletBase.Balance += sellOrder.Balance;
-                                buyWalletQuote.Balance -= sellOrder.Balance * buyOrder.Price;
+                                buyWalletQuote.Balance -= sellOrder.Balance * sellOrder.Price;
 
                                 sellWalletQuote.Balance += buyOrder.Balance * sellOrder.Price;
                                 sellWalletBase.Balance -= buyOrder.Balance;
@@ -109,7 +109,7 @@ namespace Gold.IO.Exchange.API.TradeManager
                             else if (sellOrder.Balance == buyOrder.Balance)
                             {
                                 buyWalletBase.Balance += sellOrder.Balance;
-                                buyWalletQuote.Balance -= sellOrder.Balance * buyOrder.Price;
+                                buyWalletQuote.Balance -= sellOrder.Balance * sellOrder.Price;
 
                                 sellWalletQuote.Balance += buyOrder.Balance * sellOrder.Price;
                                 sellWalletBase.Balance -= buyOrder.Balance;
