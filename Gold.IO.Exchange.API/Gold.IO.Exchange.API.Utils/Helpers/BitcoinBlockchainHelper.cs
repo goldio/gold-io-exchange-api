@@ -15,7 +15,7 @@ namespace Gold.IO.Exchange.API.Utils.Helpers
             Key privateKey = new Key();
             PubKey publicKey = privateKey.PubKey;
 
-            return publicKey.GetAddress(Network.TestNet).ToString();
+            return publicKey.GetAddress(Network.Main).ToString();
         }
     }
 }
