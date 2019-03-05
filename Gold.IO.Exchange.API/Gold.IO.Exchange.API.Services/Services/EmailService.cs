@@ -16,7 +16,7 @@ namespace Gold.IO.Exchange.API.BusinessLogic.Services
             {
                 MailTo = receiver,
                 Subject = "[GOLD.IO Exchange] Activation",
-                Message = $"http://localhost:4200/#/activation/?key={activationKey}"
+                Message = $"http://188.42.174.122/#/activation/?key={activationKey}"
             };
 
             return await SMTPHelper.SendMail(message);
@@ -28,7 +28,7 @@ namespace Gold.IO.Exchange.API.BusinessLogic.Services
             {
                 MailTo = receiver,
                 Subject = "[GOLD.IO Exchange] Recovery",
-                Message = $"http://localhost:4200/#/recovery/?key={recoveryKey}"
+                Message = $"http://188.42.174.122/#/recovery/?key={recoveryKey}"
             };
 
             return await SMTPHelper.SendMail(message);

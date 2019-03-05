@@ -10,6 +10,7 @@ using System.Timers;
 using Info.Blockchain.API.Models;
 using Gold.IO.Exchange.API.BlockExplorer.Blockcypher;
 using Gold.IO.Exchange.API.BlockExplorer.Сryptolions;
+using static Nethereum.Util.UnitConversion;
 
 namespace Gold.IO.Exchange.API.TransactionsManager
 {
@@ -55,7 +56,8 @@ namespace Gold.IO.Exchange.API.TransactionsManager
 
             CheckBitcoinOperations(operations.Where(x => x.Address.Wallet.Coin.ShortName == "BTC" && x.Status == UserWalletOperationStatus.InProgress).ToList());
             CheckEthereumOperations(operations.Where(x => x.Address.Wallet.Coin.ShortName == "ETH" && x.Status == UserWalletOperationStatus.InProgress).ToList());
-            CheckEosOperations(operations.Where(x => x.Address.Wallet.Coin.ShortName == "EOS" || x.Address.Wallet.Coin.ShortName == "GIO" && x.Status == UserWalletOperationStatus.InProgress).ToList());
+            CheckEosOperations(operations.Where(x => x.Address.Wallet.Coin.ShortName == "EOS" && x.Status == UserWalletOperationStatus.InProgress).ToList());
+            CheckEosOperations(operations.Where(x => x.Address.Wallet.Coin.ShortName == "GIO" && x.Status == UserWalletOperationStatus.InProgress).ToList());
 
             IsWorking = false;
         }
@@ -143,9 +145,6 @@ namespace Gold.IO.Exchange.API.TransactionsManager
 
         private void CheckEthereumOperations(List<UserWalletOperation> operations)
         {
-            if (operations.FirstOrDefault(x => !x.Address.Wallet.Coin.ShortName.Equals("BTC")) != null)
-                return;
-
             using (var client = new BlockcypherClient())
             {
                 foreach (var o in operations)
@@ -157,14 +156,11 @@ namespace Gold.IO.Exchange.API.TransactionsManager
                     if (address == null || address.Txrefs == null || address.Txrefs.Length == 0)
                         return;
 
-                    var addressBalance = ConvertToEth(address.Balance);
+                    double addressBalance = (double)Nethereum.Util.UnitConversion.Convert.FromWei(address.Balance, EthUnit.Ether);
 
                     if (o.Address.Wallet.Balance != addressBalance)
                     {
                         var tx = address.Txrefs.FirstOrDefault();
-
-                        o.Address.Wallet.Balance = addressBalance;
-                        UserWalletService.Update(o.Address.Wallet);
 
                         o.Address.IsUsing = false;
                         CoinAddressService.Update(o.Address);
@@ -175,7 +171,7 @@ namespace Gold.IO.Exchange.API.TransactionsManager
                         o.Status = UserWalletOperationStatus.Completed;
                         UserWalletOperationService.Update(o);
 
-                        o.Address.Wallet.Balance += o.Amount;
+                        o.Address.Wallet.Balance += addressBalance;
                         UserWalletService.Update(o.Address.Wallet);
                     }
                 }
@@ -196,7 +192,7 @@ namespace Gold.IO.Exchange.API.TransactionsManager
                     {
                         if (o.Address.PublicAddress == a.Action.Data.Memo && a.Action.Data.To == "eosiaaaaaaaa")
                         {
-                            var amount = double.Parse(a.Action.Data.Quantity);
+                            var amount = double.Parse(a.Action.Data.Quantity.Replace("EOS", "").Replace("GIO", "").Replace(" ", ""));
 
                             o.Address.IsUsing = false;
                             CoinAddressService.Update(o.Address);
@@ -209,6 +205,7 @@ namespace Gold.IO.Exchange.API.TransactionsManager
                             o.Time = a.BlockTime;
                             o.Status = UserWalletOperationStatus.Completed;
                             UserWalletOperationService.Update(o);
+                            break;
                         }
                     }
                 }
