@@ -11,9 +11,9 @@ namespace Gold.IO.Exchange.API.Utils.Helpers
 {
     public static class BitcoinBlockchainHelper
     {
-        public static string GetAddress()
+        public static string GetAddress(string key)
         {
-            var secret = new BitcoinSecret("L2vkR3XsDpPK9xJJ5yy6Wt8957N67RnEhkcXZUpen15pz6LH1LZp");
+            var secret = new BitcoinSecret(key);
             return secret.PubKey.GetAddress(Network.Main).ToString();
         }
 

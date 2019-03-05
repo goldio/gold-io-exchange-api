@@ -109,7 +109,15 @@ namespace Gold.IO.Exchange.API.Controllers
             {
                 if (wallet.Coin.ShortName.Equals("ETH"))
                 {
-                    var ethAddress = EthereumBlockchainHelper.GetAddress();
+                    var ethKey = EthereumBlockchainHelper.GetECKey();
+                    var account = new CoinAccount
+                    {
+                        AccountKey = ethKey,
+                        Derivations = 0,
+                        Coin = wallet.Coin
+                    };
+
+                    var ethAddress = EthereumBlockchainHelper.GetAddress(account.AccountKey);
                     address = new CoinAddress
                     {
                         PublicAddress = ethAddress,
@@ -122,11 +130,17 @@ namespace Gold.IO.Exchange.API.Controllers
                 }
                 else if (wallet.Coin.ShortName.Equals("BTC"))
                 {
-                    //var account = CoinAccountService.GetAll().FirstOrDefault(x => x.Coin == wallet.Coin);
-                    //if (account == null)
-                    //    return Json(new ResponseModel { Success = false, Message = "Private key not found" });
+                    var btcKey = BitcoinBlockchainHelper.GeneratePrivateKey();
+                    var account = new CoinAccount
+                    {
+                        AccountKey = btcKey,
+                        Derivations = 0,
+                        Coin = wallet.Coin
+                    };
 
-                    var btcAddress = BitcoinBlockchainHelper.GetAddress();
+                    CoinAccountService.Create(account);
+
+                    var btcAddress = BitcoinBlockchainHelper.GetAddress(account.AccountKey);
                     if (btcAddress == null)
                         return Json(new ResponseModel { Success = false, Message = "Address error" });
 

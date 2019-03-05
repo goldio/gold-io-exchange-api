@@ -16,14 +16,14 @@ namespace Gold.IO.Exchange.API.Utils.Helpers
     {
         public static HexBigInteger LastMaxBlockNumber = new HexBigInteger(0);
 
-        public static EthECKey GetECKey()
+        public static string GetECKey()
         {
-            return EthECKey.GenerateKey();
+            return EthECKey.GenerateKey().GetPrivateKey();
         }
 
-        public static string GetAddress()
+        public static string GetAddress(string key)
         {
-            var initaddr = new Sha3Keccack().CalculateHash(GetECKey().GetPubKeyNoPrefix());
+            var initaddr = new Sha3Keccack().CalculateHash(new EthECKey(key).GetPubKeyNoPrefix());
             var addr = new byte[initaddr.Length - 12];
             Array.Copy(initaddr, 12, addr, 0, initaddr.Length - 12);
             return new AddressUtil().ConvertToChecksumAddress(addr.ToHex());
