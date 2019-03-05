@@ -117,6 +117,8 @@ namespace Gold.IO.Exchange.API.Controllers
                         Coin = wallet.Coin
                     };
 
+                    CoinAccountService.Create(account);
+
                     var ethAddress = EthereumBlockchainHelper.GetAddress(account.AccountKey);
                     address = new CoinAddress
                     {
