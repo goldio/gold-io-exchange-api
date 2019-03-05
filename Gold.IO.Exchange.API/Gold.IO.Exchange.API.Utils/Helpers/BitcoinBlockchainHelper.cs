@@ -1,4 +1,5 @@
 ﻿using NBitcoin;
+using NBitcoin.RPC;
 using NBXplorer;
 using NBXplorer.DerivationStrategy;
 using NBXplorer.Models;
@@ -12,10 +13,13 @@ namespace Gold.IO.Exchange.API.Utils.Helpers
     {
         public static string GetAddress()
         {
-            Key privateKey = new Key();
-            PubKey publicKey = privateKey.PubKey;
+            var secret = new BitcoinSecret("L2vkR3XsDpPK9xJJ5yy6Wt8957N67RnEhkcXZUpen15pz6LH1LZp");
+            return secret.PubKey.GetAddress(Network.Main).ToString();
+        }
 
-            return publicKey.GetAddress(Network.Main).ToString();
+        public static string GeneratePrivateKey()
+        {
+            return new Key().GetWif(Network.Main).ToWif();
         }
     }
 }
