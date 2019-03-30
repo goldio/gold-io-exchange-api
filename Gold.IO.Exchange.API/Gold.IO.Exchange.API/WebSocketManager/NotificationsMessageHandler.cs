@@ -15,24 +15,27 @@ namespace Gold.IO.Exchange.API.WebSocketManager
 {
     public class NotificationsMessageHandler : WebSocketHandler
     {
-        private BinanceSocketClient BinanceSocketClient;
+        private IUserService UserService { get; set; }
         private IOrderService OrderService { get; set; }
 
         public List<SocketUser> socketUsers = new List<SocketUser>();
+        public List<SocketUser> orderBookSubscribers = new List<SocketUser>();
 
         public NotificationsMessageHandler(WebSocketConnectionManager webSocketConnectionManager) : base(webSocketConnectionManager)
         {
-            BinanceSocketClient = new BinanceSocketClient();
-            BinanceSocketClient.SetApiCredentials("ryHIGtf0risXmrDLlsorJgtCCp395HGtEWdRIOETMcLJq45AbK5hFx4xDYt8p0aE", "ZOONzdSsQFG1opcll62ueeU8Vn4wInrHTyxUbY3kyk4HjNEHBLBc3Jf4FUcjxx4X");
-
-            var myTimer = new Timer();
-            myTimer.Elapsed += new ElapsedEventHandler(DisplayTimeEvent);
-            myTimer.Interval = 3000;
-            myTimer.Start();
+            //var myTimer = new System.Timers.Timer();
+            //myTimer.Elapsed += new ElapsedEventHandler(DisplayTimeEvent);
+            //myTimer.Interval = 3000;
+            //myTimer.Start();
         }
 
-        public void SetCurrencyService(IOrderService orderService)
+        public void SetServices(
+            IUserService userService,
+            IOrderService orderService)
         {
+            if (UserService == null)
+                UserService = userService;
+
             if (OrderService == null)
                 OrderService = orderService;
         }
@@ -47,19 +50,14 @@ namespace Gold.IO.Exchange.API.WebSocketManager
                 var recieveJSON = JsonConvert.DeserializeObject<SocketJSON>(message);
                 var existSocketUser = socketUsers.FirstOrDefault(x => x.ID.Equals(socketId));
 
-                if (existSocketUser != null)
+                if (existSocketUser == null)
                 {
-                    existSocketUser.Type = SubscribeType.Depth;
-                    existSocketUser.Pair = recieveJSON.Message;
-                }
-                else
-                {
-                    socketUsers.Add(new SocketUser
-                    {
-                        ID = socketId,
-                        Type = SubscribeType.Depth,
-                        Pair = recieveJSON.Message
-                    });
+                    var socketUser = new SocketUser { ID = socketId, Pairs = new List<string>() };
+                    socketUser.Pairs.Add(recieveJSON.Pair);
+
+                    socketUsers.Add(socketUser);
+                    if (recieveJSON.Type.Equals("orderBook"))
+                        orderBookSubscribers.Add(socketUser);
                 }
             }
             catch (Exception ex)
@@ -68,41 +66,45 @@ namespace Gold.IO.Exchange.API.WebSocketManager
             }
         }
 
-        public void DisplayTimeEvent(object source, ElapsedEventArgs e)
-        {
-            foreach (var socket in this.WebSocketConnectionManager.GetAll())
-            {
-                if (socket.Value.State == WebSocketState.Open)
-                {
-                    var existSocketConnection = socketUsers.FirstOrDefault(x => x.ID.Equals(socket.Key));
-                    if (existSocketConnection != null)
-                        SendCurrencyForUser(socket.Value);
-                }
-            }
-        }
+        //public void DisplayTimeEvent(object source, ElapsedEventArgs e)
+        //{
+        //    foreach (var socket in this.WebSocketConnectionManager.GetAll())
+        //    {
+        //        if (socket.Value.State == WebSocketState.Open)
+        //        {
+        //            var existSocketConnection = socketUsers.FirstOrDefault(x => x.ID.Equals(socket.Key));
+        //            if (existSocketConnection != null)
+        //                SendCurrencyForUser(socket.Value);
+        //        }
+        //    }
+        //}
 
-        private async void SendCurrencyForUser(WebSocket socket)
-        {
-            var orders = OrderService.GetAll().Where(x => x.Status == OrderStatus.Open).ToList();
-            var result = JsonConvert.SerializeObject(new SocketJSON { Message = JsonConvert.SerializeObject(orders) });
-            await SendMessageAsync(socket, result);
+        //private async void SendCurrencyForUser(WebSocket socket)
+        //{
+        //    var data = new
+        //    {
+        //        test = "123"
+        //    };
 
-            return;
-        }
+        //    var answer = JsonConvert.SerializeObject(new SocketJSON { Type = "updateCurrency", Message = JsonConvert.SerializeObject(data) });
+        //    await SendMessageAsync(socket, answer);
+
+        //    return;
+        //}
     }
-
-
 
     public class SocketJSON
     {
-        [JsonProperty("message")]
-        public string Message { get; set; }
+        [JsonProperty("type")]
+        public string Type { get; set; }
+
+        [JsonProperty("pair")]
+        public string Pair { get; set; }
     }
 
     public class SocketUser
     {
         public string ID { get; set; }
-        public SubscribeType Type { get; set; }
-        public string Pair { get; set; }
+        public List<string> Pairs { get; set; }
     }
 }

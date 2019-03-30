@@ -16,10 +16,10 @@ namespace Gold.IO.Exchange.API.TradeManager
 
         public TradeManager()
         {
-            var myTimer = new Timer();
-            myTimer.Elapsed += new ElapsedEventHandler(CheckOrders);
-            myTimer.Interval = 30000;
-            myTimer.Start();
+            //var myTimer = new Timer();
+            //myTimer.Elapsed += new ElapsedEventHandler(CheckOrders);
+            //myTimer.Interval = 30000;
+            //myTimer.Start();
         }
 
         public void SetServices(IOrderService orderService, IUserWalletService userWalletService)

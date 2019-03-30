@@ -27,8 +27,8 @@ namespace Gold.IO.Exchange.API
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             services.AddBuisnessServices();
-            //services.AddNHibernate("Server=localhost;Port=3306;Uid=root;Pwd=admin;Database=goldio_exchange;SslMode=none;");
-            services.AddNHibernate("Server=localhost;Port=3306;Uid=root;Pwd=vUw7pf9GALbg;Database=goldio_exchange;SslMode=none;");
+            services.AddNHibernate("Server=localhost;Port=3306;Uid=root;Pwd=admin123;Database=exchange_db;SslMode=none;");
+            //services.AddNHibernate("Server=localhost;Port=3306;Uid=root;Pwd=vUw7pf9GALbg;Database=goldio_exchange;SslMode=none;");
             services.AddCors();
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -77,11 +77,16 @@ namespace Gold.IO.Exchange.API
             app.UseWebSockets();
 
             var notifMessageHandler = serviceProvider.GetService<NotificationsMessageHandler>();
-            notifMessageHandler.SetCurrencyService(serviceProvider.GetService<IOrderService>());
+            notifMessageHandler.SetServices(
+                serviceProvider.GetService<IUserService>(),
+                serviceProvider.GetService<IOrderService>());
+
             app.MapWebSocketManager("/notifications", notifMessageHandler);
 
             var tradeManager = serviceProvider.GetService<TradeManager.TradeManager>();
-            tradeManager.SetServices(serviceProvider.GetService<IOrderService>(), serviceProvider.GetService<IUserWalletService>());
+            tradeManager.SetServices(
+                serviceProvider.GetService<IOrderService>(),
+                serviceProvider.GetService<IUserWalletService>());
 
             var transactionsManager = serviceProvider.GetService<TransactionsManager.TransactionsManager>();
             transactionsManager.SetServices(
