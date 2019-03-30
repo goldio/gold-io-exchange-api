@@ -54,8 +54,8 @@ namespace Gold.IO.Exchange.API.TransactionsManager
 
             var operations = UserWalletOperationService.GetAll().ToList();
 
-            CheckBitcoinOperations(operations.Where(x => x.Address.Wallet.Coin.ShortName == "BTC" && x.Status == UserWalletOperationStatus.InProgress).ToList());
-            CheckEthereumOperations(operations.Where(x => x.Address.Wallet.Coin.ShortName == "ETH" && x.Status == UserWalletOperationStatus.InProgress).ToList());
+            //CheckBitcoinOperations(operations.Where(x => x.Address.Wallet.Coin.ShortName == "BTC" && x.Status == UserWalletOperationStatus.InProgress).ToList());
+            //CheckEthereumOperations(operations.Where(x => x.Address.Wallet.Coin.ShortName == "ETH" && x.Status == UserWalletOperationStatus.InProgress).ToList());
             CheckEosOperations(operations.Where(x => x.Address.Wallet.Coin.ShortName == "EOS" && x.Status == UserWalletOperationStatus.InProgress).ToList());
             CheckEosOperations(operations.Where(x => x.Address.Wallet.Coin.ShortName == "GIO" && x.Status == UserWalletOperationStatus.InProgress).ToList());
 

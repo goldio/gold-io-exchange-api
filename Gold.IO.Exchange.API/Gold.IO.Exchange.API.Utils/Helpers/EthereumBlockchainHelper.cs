@@ -5,8 +5,10 @@ using Nethereum.Signer.Crypto;
 using Nethereum.Util;
 using Nethereum.Web3;
 using Nethereum.Web3.Accounts;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -14,34 +16,87 @@ namespace Gold.IO.Exchange.API.Utils.Helpers
 {
     public static class EthereumBlockchainHelper
     {
-        public static HexBigInteger LastMaxBlockNumber = new HexBigInteger(0);
-
-        public static string GetECKey()
+        public static string GetAddress()
         {
-            return EthECKey.GenerateKey().GetPrivateKey();
+            using (var client = new HttpClient())
+            {
+                var message = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Get,
+                    RequestUri = new Uri("http://188.42.174.122:5002/api/wallet/deposit")
+                };
+
+                message.Headers.Add("API_KEY", "5581292B69E456097282825F1C77B506");
+                var request = client.SendAsync(message);
+
+                request.Wait();
+                var response = request.Result;
+
+                if (!response.IsSuccessStatusCode)
+                    return null;
+
+                var addressTask = response.Content.ReadAsStringAsync();
+                addressTask.Wait();
+
+                var result = JsonConvert.DeserializeObject<DepositResponse>(addressTask.Result);
+                if (!result.Success)
+                    return null;
+
+                return result.Address;
+            }
         }
 
-        public static string GetAddress(string key)
+        public static string SendTransaction(string addressTo, decimal amount)
         {
-            var initaddr = new Sha3Keccack().CalculateHash(new EthECKey(key).GetPubKeyNoPrefix());
-            var addr = new byte[initaddr.Length - 12];
-            Array.Copy(initaddr, 12, addr, 0, initaddr.Length - 12);
-            return new AddressUtil().ConvertToChecksumAddress(addr.ToHex());
-        }
+            var request = new WithdrawalRequest
+            {
+                AddressTo = addressTo,
+                Amount = amount
+            };
 
-        public static async Task<string> SendTransaction(string key, string addressTo, double amount)
-        {
-            var address = GetAddress(key);
-            var web3 = new Web3();
-            var txCount = await web3.Eth.Transactions.GetTransactionCount.SendRequestAsync(address);
-            var encoded = Web3.OfflineTransactionSigner.SignTransaction(key, addressTo, UnitConversion.Convert.ToWei(amount, UnitConversion.EthUnit.Ether), txCount.Value);
+            var response = SendPostAsync("http://188.42.174.122:5002/api/wallet/withdraw", request);
+            response.Wait();
 
-            if (!Web3.OfflineTransactionSigner.VerifyTransaction(encoded))
+            if (!response.Result.IsSuccessStatusCode)
                 return null;
 
-            var txId = await web3.Eth.Transactions.SendRawTransaction.SendRequestAsync($"0x{encoded}");
+            var responseReader = response.Result.Content.ReadAsStringAsync();
+            responseReader.Wait();
 
-            return txId;
+            return responseReader.Result;
+        }
+
+        private static async Task<HttpResponseMessage> SendPostAsync(string url, object body)
+        {
+            using (var client = new HttpClient())
+            {
+                var content = JsonConvert.SerializeObject(body);
+
+                var request = new HttpRequestMessage
+                {
+                    RequestUri = new Uri(url),
+                    Method = HttpMethod.Post,
+                    Content = new StringContent(content, Encoding.UTF8, "application/json")
+                };
+
+                request.Headers.Add("API_KEY", "5581292B69E456097282825F1C77B506");
+                var response = await client.SendAsync(request);
+
+                return response;
+            }
+        }
+
+        class DepositResponse
+        {
+            public string Address { get; set; }
+            public bool Success { get; set; }
+            public string Message { get; set; }
+        }
+
+        class WithdrawalRequest
+        {
+            public string AddressTo { get; set; }
+            public decimal Amount { get; set; }
         }
     }
 }

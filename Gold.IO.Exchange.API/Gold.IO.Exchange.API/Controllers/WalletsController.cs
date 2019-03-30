@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Gold.IO.Exchange.API.BlockExplorer.Сryptolions;
@@ -17,6 +18,12 @@ using Microsoft.AspNetCore.Mvc;
 using NBitcoin;
 using NBitcoin.RPC;
 using NBXplorer;
+using Nethereum.Hex.HexConvertors.Extensions;
+using Nethereum.Hex.HexTypes;
+using Nethereum.JsonRpc.Client;
+using Nethereum.Util;
+using Nethereum.Web3;
+using Nethereum.Web3.Accounts;
 
 namespace Gold.IO.Exchange.API.Controllers
 {
@@ -33,7 +40,7 @@ namespace Gold.IO.Exchange.API.Controllers
         private IBitcoinService BitcoinService { get; set; }
 
         public WalletsController([FromServices]
-            IUserService userService, 
+            IUserService userService,
             IUserWalletService walletService,
             ICoinAddressService coinAddressService,
             ICoinAccountService coinAccountService,
@@ -48,13 +55,139 @@ namespace Gold.IO.Exchange.API.Controllers
             BitcoinService = bitcoinService;
         }
 
-        [HttpGet("test")]
-        public async Task<IActionResult> Test()
+        [HttpGet("eth/{address}/balance")]
+        public async Task<IActionResult> EthBalance(string address)
         {
-            using (var client = new СryptolionsClient())
+            // 0x5d6E78DdD81A59e2e562e5629d13217a50f237dA
+            var web3 = new RpcClient(new Uri("https://mainnet.infura.io/v3/95eecca9b719440d8d60600b8928aa9b"));
+            var balance = await web3.SendRequestAsync<string>(new RpcRequest(1, "eth_getBalance", new[] { address, "latest" }));
+            return Json(Web3.Convert.FromWei(new HexBigInteger(balance)));
+        }
+
+        [HttpGet("btc/{address}/balance")]
+        public async Task<IActionResult> BtcBalance(string address)
+        {
+            NetworkCredential credentials = new NetworkCredential("goldio", "goldiorpcadmin");
+            RPCClient rpc = new RPCClient(credentials, "http://127.0.0.1:8333/", Network.Main);
+            var receivedMoney = rpc.GetReceivedByAddress(BitcoinAddress.Create(address));
+            return Json(receivedMoney.ToUnit(MoneyUnit.BTC));
+        }
+
+        [HttpPost("fee")]
+        public async Task<IActionResult> GetTransactionFee([FromBody] GetTransactionFeeRequest request)
+        {
+            if (request.Coin.Equals("BTC"))
+                return Json(await CalculateBitcoinFee(request.Amount));
+
+            if (request.Coin.Equals("ETH"))
+                return Json(await CalculateEthereumFee(request.Amount));
+
+            return Json(new ResponseModel
             {
-                var actions = await client.GetActions();
-                return Json(actions);
+                Success = false
+            });
+        }
+
+        private async Task<GetTransactionFeeResponse> CalculateEthereumFee(double amount)
+        {
+            return new GetTransactionFeeResponse
+            {
+                Fee = 0.00042,
+                FinalAmount = amount - 0.00042
+            };
+        }
+
+        private async Task<GetTransactionFeeResponse> CalculateBitcoinFee(double amount)
+        {
+            return new GetTransactionFeeResponse
+            {
+                Fee = 0.00005,
+                FinalAmount = amount - 0.00005
+            };
+        }
+
+        [HttpPost("withdrawalVerify")]
+        public async Task<IActionResult> WithdrawalVerify([FromBody] VerifyWithdrawal request)
+        {
+            var address = CoinAddressService.GetAll().FirstOrDefault(x => x.PublicAddress.Equals(request.Address));
+            if (address == null)
+                return Json(new ResponseModel { Success = false, Message = "Address not found" });
+
+            var operation = WalletOperationService.GetAll().FirstOrDefault(x => x.Address == address);
+            if (operation == null)
+                return Json(new ResponseModel { Success = false, Message = "Operation not found" });
+
+            if (address.Wallet.Balance < (double)request.Amount)
+                return Json(new ResponseModel { Success = false, Message = "Insufficient funds" });
+
+            address.IsUsing = false;
+            CoinAddressService.Update(address);
+
+            operation.Confirmations = 1;
+            operation.Status = UserWalletOperationStatus.Completed;
+            WalletOperationService.Update(operation);
+
+            address.Wallet.Balance -= (double)request.Amount;
+            WalletService.Update(address.Wallet);
+
+            return Json(new ResponseModel());
+        }
+
+        [HttpPost("depositWebhook")]
+        public async Task<IActionResult> DepositWebhook([FromBody] DepositNotification request)
+        {
+            var address = CoinAddressService.GetAll().FirstOrDefault(x => x.PublicAddress.Equals(request.Address));
+            if (address == null)
+                return Json(new ResponseModel { Success = false, Message = "Address not found" });
+
+            var operation = WalletOperationService.GetAll().FirstOrDefault(x => x.Address == address);
+            if (operation == null)
+                return Json(new ResponseModel { Success = false, Message = "Operation not found" });
+
+            address.IsUsing = false;
+            CoinAddressService.Update(address);
+
+            operation.Amount = (double)request.Amount;
+            operation.Confirmations = 1;
+            operation.Time = DateTime.UtcNow;
+            operation.Status = UserWalletOperationStatus.Completed;
+            WalletOperationService.Update(operation);
+
+            address.Wallet.Balance += (double)request.Amount;
+            WalletService.Update(address.Wallet);
+
+            return Ok();
+        }
+
+        private long ParseHexString(string hexNumber)
+        {
+            hexNumber = hexNumber.Replace("x", string.Empty);
+            long.TryParse(hexNumber, System.Globalization.NumberStyles.HexNumber, null, out long result);
+            return result;
+        }
+
+        static class TableConvert
+        {
+            static sbyte[] unhex_table =
+            { -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1
+       ,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1
+       ,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1
+       , 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,-1,-1,-1,-1,-1,-1
+       ,-1,10,11,12,13,14,15,-1,-1,-1,-1,-1,-1,-1,-1,-1
+       ,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1
+       ,-1,10,11,12,13,14,15,-1,-1,-1,-1,-1,-1,-1,-1,-1
+       ,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1
+      };
+
+            public static int Convert(string hexNumber)
+            {
+                int decValue = unhex_table[(byte)hexNumber[0]];
+                for (int i = 1; i < hexNumber.Length; i++)
+                {
+                    decValue *= 16;
+                    decValue += unhex_table[(byte)hexNumber[i]];
+                }
+                return decValue;
             }
         }
 
@@ -104,22 +237,15 @@ namespace Gold.IO.Exchange.API.Controllers
             if (wallet == null)
                 return Json(new ResponseModel { Success = false, Message = "Wallet not found" });
 
-            var address = CoinAddressService.GetAll().FirstOrDefault(x => x.Wallet == wallet);
-            if (address == null || !address.IsUsing || address.Type != CoinAddressType.Deposit)
+            var address = CoinAddressService.GetAll().FirstOrDefault(x => x.Wallet == wallet && x.IsUsing && x.Type == CoinAddressType.Deposit);
+            if (address == null)
             {
                 if (wallet.Coin.ShortName.Equals("ETH"))
                 {
-                    var ethKey = EthereumBlockchainHelper.GetECKey();
-                    var account = new CoinAccount
-                    {
-                        AccountKey = ethKey,
-                        Derivations = 0,
-                        Coin = wallet.Coin
-                    };
+                    var ethAddress = EthereumBlockchainHelper.GetAddress();
+                    if (ethAddress == null)
+                        return Json(new ResponseModel { Success = false, Message = "Address error" });
 
-                    CoinAccountService.Create(account);
-
-                    var ethAddress = EthereumBlockchainHelper.GetAddress(account.AccountKey);
                     address = new CoinAddress
                     {
                         PublicAddress = ethAddress,
@@ -132,22 +258,9 @@ namespace Gold.IO.Exchange.API.Controllers
                 }
                 else if (wallet.Coin.ShortName.Equals("BTC"))
                 {
-                    var btcKey = BitcoinBlockchainHelper.GeneratePrivateKey();
-                    var account = new CoinAccount
-                    {
-                        AccountKey = btcKey,
-                        Derivations = 0,
-                        Coin = wallet.Coin
-                    };
-
-                    CoinAccountService.Create(account);
-
-                    var btcAddress = BitcoinBlockchainHelper.GetAddress(account.AccountKey);
+                    var btcAddress = BitcoinBlockchainHelper.GetAddress();
                     if (btcAddress == null)
                         return Json(new ResponseModel { Success = false, Message = "Address error" });
-
-                    //account.Derivations++;
-                    //CoinAccountService.Update(account);
 
                     address = new CoinAddress
                     {
@@ -217,14 +330,21 @@ namespace Gold.IO.Exchange.API.Controllers
 
             WalletOperationService.Create(withdrawOrder);
 
-            wallet.Balance -= request.Amount;
-            WalletService.Update(wallet);
-
-            if (wallet.Coin.ShortName.Equals("EOS") || wallet.Coin.ShortName.Equals("GIO"))
+            if (wallet.Coin.ShortName.Equals("BTC"))
+            {
+                var tx = BitcoinBlockchainHelper.SendTransaction(request.Address, (decimal)request.Amount);
+            }
+            else if (wallet.Coin.ShortName.Equals("ETH"))
+            {
+                var tx = EthereumBlockchainHelper.SendTransaction(request.Address, (decimal)request.Amount);
+            }
+            else if (wallet.Coin.ShortName.Equals("EOS") || wallet.Coin.ShortName.Equals("GIO"))
             {
                 using (var cryptolions = new СryptolionsClient())
                 {
                     await cryptolions.CreateWithdrawalRequest(withdrawOrder.Address.PublicAddress, withdrawOrder.Amount, wallet.Coin.ShortName);
+                    wallet.Balance -= request.Amount;
+                    WalletService.Update(wallet);
                 }
             }
 

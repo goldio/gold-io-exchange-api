@@ -57,7 +57,7 @@ namespace Gold.IO.Exchange.API.BlockExplorer.Сryptolions
 
         public async Task<string> CreateWithdrawalRequest(string to, double amount, string coin)
         {
-            string amountStr = $"{String.Format("{0:0.0000}", amount).Replace(",", ".")} {coin}";
+            string amountStr = $"{string.Format("{0:0.0000}", amount).Replace(",", ".")} {coin}";
 
             var result = await eos.CreateTransaction(new Transaction()
             {
@@ -65,7 +65,7 @@ namespace Gold.IO.Exchange.API.BlockExplorer.Сryptolions
                 {
                     new EosSharp.Core.Api.v1.Action()
                     {
-                        account = "zengjianhong",
+                        account = coin == "GIO" ? "zengjianhong" : coin == "EOS" ? "eosio.token" : WithdrawAccount,
                         authorization = new List<PermissionLevel>()
                         {
                             new PermissionLevel() {actor = "zengjianhong", permission = "active" }
@@ -73,7 +73,7 @@ namespace Gold.IO.Exchange.API.BlockExplorer.Сryptolions
                         name = "transfer",
                         data = new Dictionary<string, string>()
                         {
-                            { "from", "zengjianhong" },
+                            { "from", coin == "GIO" ? "zengjianhong" : coin == "EOS" ? "eosio.token" : WithdrawAccount },
                             { "to", to },
                             { "quantity", amountStr },
                             { "memo", "" }
