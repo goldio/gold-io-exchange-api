@@ -82,7 +82,7 @@ namespace Gold.IO.Exchange.API.Controllers
                     .FirstOrDefault(x => x.User == user &&
                         x.Coin == quoteAssetCoin);
 
-                if (wallet.Balance < request.Amount)
+                if (wallet.Balance < (request.Amount * request.Price))
                     return BadRequest(new ResponseModel
                     {
                         Success = false,
