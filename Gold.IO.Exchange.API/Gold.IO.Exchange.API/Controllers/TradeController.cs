@@ -24,6 +24,7 @@ namespace Gold.IO.Exchange.API.Controllers
         private IUserService UserService { get; set; }
         private ICoinService CoinService { get; set; }
         private IOrderService OrderService { get; set; }
+        private IUserWalletService UserWalletService { get; set; }
 
         private NotificationsMessageHandler WebSocketService { get; set; }
 
@@ -31,11 +32,13 @@ namespace Gold.IO.Exchange.API.Controllers
             IUserService userService,
             ICoinService coinService,
             IOrderService orderService,
+            IUserWalletService userWalletService,
             NotificationsMessageHandler webSocketService)
         {
             UserService = userService;
             CoinService = coinService;
             OrderService = orderService;
+            UserWalletService = userWalletService;
             WebSocketService = webSocketService;
         }
 
@@ -79,6 +82,12 @@ namespace Gold.IO.Exchange.API.Controllers
                 Time = DateTime.UtcNow
             };
 
+            var price = new PriceViewModel
+            {
+                Price = GetCurrentPrice(request.BaseAsset, request.QuoteAsset),
+                IsHigher = true
+            };
+
             OrderService.Create(order);
 
             var websocketUsers = WebSocketService.orderBookSubscribers
@@ -94,7 +103,255 @@ namespace Gold.IO.Exchange.API.Controllers
                 })).Wait();
             }
 
+            var openOrders = OrderService.GetAll()
+                .Where(x => x.User != user &&
+                    x.ID != order.ID &&
+                    x.Status == OrderStatus.Open);
+
+            Order toCloseOrder;
+
+            if (order.Type == OrderType.Buy)
+                toCloseOrder = openOrders
+                    .FirstOrDefault(x => x.Type == OrderType.Sell &&
+                        x.Price <= order.Price && x.Balance > 0);
+            else
+                toCloseOrder = openOrders
+                    .FirstOrDefault(x => x.Type == OrderType.Buy &&
+                        x.Price <= order.Price && x.Balance > 0);
+
+            if (toCloseOrder != null)
+                CompareTwoOrders(order, toCloseOrder, price);
+
             return Json(new ResponseModel());
+        }
+
+        private void CompareTwoOrders(Order order1, Order order2, PriceViewModel price)
+        {
+            var orders = new List<Order>
+            {
+                order1,
+                order2
+            };
+
+            var buyOrder = orders.FirstOrDefault(x => x.Type == OrderType.Buy);
+            var sellOrder = orders.FirstOrDefault(x => x.Type == OrderType.Sell);
+
+            if (buyOrder == null || sellOrder == null)
+                return;
+
+            var buyerAccrualWallet = UserWalletService.GetAll()
+                    .FirstOrDefault(x => x.User == buyOrder.User &&
+                        x.Coin == buyOrder.QuoteAsset);
+
+            var buyerWriteOffWallet = UserWalletService.GetAll()
+                    .FirstOrDefault(x => x.User == buyOrder.User &&
+                        x.Coin == buyOrder.BaseAsset);
+            
+            var sellerAccrualWallet = UserWalletService.GetAll()
+                    .FirstOrDefault(x => x.User == sellOrder.User &&
+                        x.Coin == sellOrder.BaseAsset);
+
+            var sellerWriteOffWallet = UserWalletService.GetAll()
+                    .FirstOrDefault(x => x.User == sellOrder.User &&
+                        x.Coin == sellOrder.QuoteAsset);
+
+            if (buyOrder.Balance > sellOrder.Balance)
+            {
+                var buyOrderBalance = buyOrder.Balance - sellOrder.Balance;
+                var sellOrderBalance = 0;
+
+                var buyerAccrual = sellOrder.Balance;
+                var buyerWriteOff = sellOrder.Balance * buyOrder.Price;
+
+                var sellerAccrual = sellOrder.Balance * buyOrder.Price;
+                var sellerWriteOff = sellOrder.Balance;
+
+                buyOrder.Balance = buyOrderBalance;
+                OrderService.Update(buyOrder);
+
+                sellOrder.Balance = sellOrderBalance;
+                sellOrder.Status = OrderStatus.Closed;
+                OrderService.Update(sellOrder);
+
+                buyerAccrualWallet.Balance += buyerAccrual;
+                UserWalletService.Update(buyerAccrualWallet);
+
+                buyerWriteOffWallet.Balance -= buyerWriteOff;
+                UserWalletService.Update(buyerWriteOffWallet);
+
+                sellerAccrualWallet.Balance += sellerAccrual;
+                UserWalletService.Update(sellerAccrualWallet);
+
+                sellerWriteOffWallet.Balance -= sellerWriteOff;
+                UserWalletService.Update(sellerWriteOffWallet);
+
+                var websocketUsers = WebSocketService.orderBookSubscribers
+                .Where(x => x.Pairs.Contains($"{sellOrder.BaseAsset.ShortName}/{sellOrder.QuoteAsset.ShortName}"))
+                .ToList();
+
+                foreach (var wsUser in websocketUsers)
+                {
+                    WebSocketService.SendMessageAsync(wsUser.ID, JsonConvert.SerializeObject(new WebSocketMessage
+                    {
+                        Type = "orderBookUpdate",
+                        Message = JsonConvert.SerializeObject(new OrderViewModel(sellOrder))
+                    })).Wait();
+                }
+
+                if (buyOrder.Price >= price.Price)
+                    price.IsHigher = true;
+                else
+                    price.IsHigher = false;
+
+                price.Price = buyOrder.Price;
+
+                foreach (var wsUser in websocketUsers)
+                {
+                    WebSocketService.SendMessageAsync(wsUser.ID, JsonConvert.SerializeObject(new WebSocketMessage
+                    {
+                        Type = "priceUpdate",
+                        Message = JsonConvert.SerializeObject(price)
+                    })).Wait();
+                }
+
+                return;
+            }
+
+            if (buyOrder.Balance == sellOrder.Balance)
+            {
+                var buyOrderBalance = 0;
+                var sellOrderBalance = 0;
+
+                var buyerAccrual = sellOrder.Balance;
+                var buyerWriteOff = sellOrder.Balance * buyOrder.Price;
+
+                var sellerAccrual = sellOrder.Balance * buyOrder.Price;
+                var sellerWriteOff = sellOrder.Balance;
+
+                buyOrder.Balance = buyOrderBalance;
+                buyOrder.Status = OrderStatus.Closed;
+                OrderService.Update(buyOrder);
+
+                sellOrder.Balance = sellOrderBalance;
+                sellOrder.Status = OrderStatus.Closed;
+                OrderService.Update(sellOrder);
+
+                buyerAccrualWallet.Balance += buyerAccrual;
+                UserWalletService.Update(buyerAccrualWallet);
+
+                buyerWriteOffWallet.Balance -= buyerWriteOff;
+                UserWalletService.Update(buyerWriteOffWallet);
+
+                sellerAccrualWallet.Balance += sellerAccrual;
+                UserWalletService.Update(sellerAccrualWallet);
+
+                sellerWriteOffWallet.Balance -= sellerWriteOff;
+                UserWalletService.Update(sellerWriteOffWallet);
+
+                var websocketUsers = WebSocketService.orderBookSubscribers
+                .Where(x => x.Pairs.Contains($"{sellOrder.BaseAsset.ShortName}/{sellOrder.QuoteAsset.ShortName}"))
+                .ToList();
+
+                foreach (var wsUser in websocketUsers)
+                {
+                    WebSocketService.SendMessageAsync(wsUser.ID, JsonConvert.SerializeObject(new WebSocketMessage
+                    {
+                        Type = "orderBookUpdate",
+                        Message = JsonConvert.SerializeObject(new OrderViewModel(sellOrder))
+                    })).Wait();
+                }
+
+                foreach (var wsUser in websocketUsers)
+                {
+                    WebSocketService.SendMessageAsync(wsUser.ID, JsonConvert.SerializeObject(new WebSocketMessage
+                    {
+                        Type = "orderBookUpdate",
+                        Message = JsonConvert.SerializeObject(new OrderViewModel(buyOrder))
+                    })).Wait();
+                }
+
+                if (buyOrder.Price >= price.Price)
+                    price.IsHigher = true;
+                else
+                    price.IsHigher = false;
+
+                price.Price = buyOrder.Price;
+
+                foreach (var wsUser in websocketUsers)
+                {
+                    WebSocketService.SendMessageAsync(wsUser.ID, JsonConvert.SerializeObject(new WebSocketMessage
+                    {
+                        Type = "priceUpdate",
+                        Message = JsonConvert.SerializeObject(price)
+                    })).Wait();
+                }
+
+                return;
+            }
+
+            if (buyOrder.Balance < sellOrder.Balance)
+            {
+                var buyOrderBalance = 0;
+                var sellOrderBalance = sellOrder.Balance - buyOrder.Balance;
+
+                var buyerAccrual = sellOrder.Balance;
+                var buyerWriteOff = sellOrder.Balance * buyOrder.Price;
+
+                var sellerAccrual = sellOrder.Balance * buyOrder.Price;
+                var sellerWriteOff = sellOrder.Balance;
+
+                buyOrder.Balance = buyOrderBalance;
+                buyOrder.Status = OrderStatus.Closed;
+                OrderService.Update(buyOrder);
+
+                sellOrder.Balance = sellOrderBalance;
+                OrderService.Update(sellOrder);
+
+                buyerAccrualWallet.Balance += buyerAccrual;
+                UserWalletService.Update(buyerAccrualWallet);
+
+                buyerWriteOffWallet.Balance -= buyerWriteOff;
+                UserWalletService.Update(buyerWriteOffWallet);
+
+                sellerAccrualWallet.Balance += sellerAccrual;
+                UserWalletService.Update(sellerAccrualWallet);
+
+                sellerWriteOffWallet.Balance -= sellerWriteOff;
+                UserWalletService.Update(sellerWriteOffWallet);
+
+                var websocketUsers = WebSocketService.orderBookSubscribers
+                .Where(x => x.Pairs.Contains($"{sellOrder.BaseAsset.ShortName}/{sellOrder.QuoteAsset.ShortName}"))
+                .ToList();
+
+                foreach (var wsUser in websocketUsers)
+                {
+                    WebSocketService.SendMessageAsync(wsUser.ID, JsonConvert.SerializeObject(new WebSocketMessage
+                    {
+                        Type = "orderBookUpdate",
+                        Message = JsonConvert.SerializeObject(new OrderViewModel(buyOrder))
+                    })).Wait();
+                }
+
+                if (buyOrder.Price >= price.Price)
+                    price.IsHigher = true;
+                else
+                    price.IsHigher = false;
+
+                price.Price = buyOrder.Price;
+
+                foreach (var wsUser in websocketUsers)
+                {
+                    WebSocketService.SendMessageAsync(wsUser.ID, JsonConvert.SerializeObject(new WebSocketMessage
+                    {
+                        Type = "priceUpdate",
+                        Message = JsonConvert.SerializeObject(price)
+                    })).Wait();
+                }
+
+                return;
+            }
+
+            return;
         }
 
         [HttpGet("pairs/{symbol}/price")]
@@ -215,6 +472,42 @@ namespace Gold.IO.Exchange.API.Controllers
             });
         }
 
+        [HttpGet("pairs/{symbol}/orders/my/open")]
+        [Authorize]
+        public async Task<IActionResult> GetMyOpenOrders(string symbol)
+        {
+            var coins = symbol.Split(".");
+
+            var baseAsset = CoinService.GetAll()
+                .FirstOrDefault(x => x.ShortName.Equals(coins[0]));
+
+            var quoteAsset = CoinService.GetAll()
+                .FirstOrDefault(x => x.ShortName.Equals(coins[1]));
+
+            if (baseAsset == null || quoteAsset == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Coin error"
+                });
+
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.Login == User.Identity.Name);
+
+            var orders = OrderService.GetAll()
+                .Where(x => x.BaseAsset == baseAsset &&
+                    x.QuoteAsset == quoteAsset &&
+                    x.Status == OrderStatus.Open &&
+                    x.User == user)
+                .Select(x => new OrderViewModel(x))
+                .ToList();
+
+            return Ok(new DataResponse<List<OrderViewModel>>
+            {
+                Data = orders
+            });
+        }
+
         [HttpGet("pairs")]
         public async Task<IActionResult> GetPairs()
         {
@@ -251,6 +544,7 @@ namespace Gold.IO.Exchange.API.Controllers
                 return 0;
 
             var order = OrderService.GetAll()
+                .AsEnumerable()
                 .LastOrDefault(x => x.BaseAsset == baseAsset &&
                     x.QuoteAsset == quoteAsset &&
                     x.Status == OrderStatus.Closed);
