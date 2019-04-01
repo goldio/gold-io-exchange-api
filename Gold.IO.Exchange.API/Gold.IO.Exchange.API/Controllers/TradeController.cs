@@ -46,6 +46,13 @@ namespace Gold.IO.Exchange.API.Controllers
         [Authorize]
         public async Task<IActionResult> CreateOrder([FromBody] CreateOrderRequest request)
         {
+            if (request.Price == 0 || request.Amount == 0)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Price and Amount must be not 0"
+                });
+
             var baseAssetCoin = CoinService.GetAll()
                 .FirstOrDefault(x => x.ShortName == request.BaseAsset);
 
@@ -104,8 +111,7 @@ namespace Gold.IO.Exchange.API.Controllers
             }
 
             var openOrders = OrderService.GetAll()
-                .Where(x => x.User != user &&
-                    x.ID != order.ID &&
+                .Where(x => x.ID != order.ID &&
                     x.Status == OrderStatus.Open);
 
             Order toCloseOrder;
