@@ -76,6 +76,34 @@ namespace Gold.IO.Exchange.API.Controllers
             var user = UserService.GetAll()
                 .FirstOrDefault(x => x.Login == User.Identity.Name);
 
+            if (request.Type == OrderType.Buy)
+            {
+                var wallet = UserWalletService.GetAll()
+                    .FirstOrDefault(x => x.User == user &&
+                        x.Coin == baseAssetCoin);
+
+                if (wallet.Balance < request.Amount)
+                    return BadRequest(new ResponseModel
+                    {
+                        Success = false,
+                        Message = "Insuficcient funds"
+                    });
+            }
+
+            if (request.Type == OrderType.Sell)
+            {
+                var wallet = UserWalletService.GetAll()
+                    .FirstOrDefault(x => x.User == user &&
+                        x.Coin == quoteAssetCoin);
+
+                if (wallet.Balance < request.Amount)
+                    return BadRequest(new ResponseModel
+                    {
+                        Success = false,
+                        Message = "Insuficcient funds"
+                    });
+            }
+
             var order = new Order
             {
                 User = user,
@@ -163,14 +191,14 @@ namespace Gold.IO.Exchange.API.Controllers
 
             if (buyOrder.Balance > sellOrder.Balance)
             {
-                var buyOrderBalance = buyOrder.Balance - sellOrder.Balance;
+                var buyOrderBalance = Math.Round(buyOrder.Balance) - Math.Round(sellOrder.Balance);
                 var sellOrderBalance = 0;
 
-                var buyerAccrual = sellOrder.Balance;
-                var buyerWriteOff = sellOrder.Balance * buyOrder.Price;
+                var buyerAccrual = Math.Round(sellOrder.Balance);
+                var buyerWriteOff = Math.Round(sellOrder.Balance) * Math.Round(buyOrder.Price);
 
-                var sellerAccrual = sellOrder.Balance * buyOrder.Price;
-                var sellerWriteOff = sellOrder.Balance;
+                var sellerAccrual = Math.Round(sellOrder.Balance) * Math.Round(buyOrder.Price);
+                var sellerWriteOff = Math.Round(sellOrder.Balance);
 
                 buyOrder.Balance = buyOrderBalance;
                 OrderService.Update(buyOrder);
@@ -179,16 +207,16 @@ namespace Gold.IO.Exchange.API.Controllers
                 sellOrder.Status = OrderStatus.Closed;
                 OrderService.Update(sellOrder);
 
-                buyerAccrualWallet.Balance += buyerAccrual;
+                buyerAccrualWallet.Balance = Math.Round(buyerAccrualWallet.Balance) + buyerAccrual;
                 UserWalletService.Update(buyerAccrualWallet);
 
-                buyerWriteOffWallet.Balance -= buyerWriteOff;
+                buyerWriteOffWallet.Balance = Math.Round(buyerWriteOffWallet.Balance) - buyerWriteOff;
                 UserWalletService.Update(buyerWriteOffWallet);
 
-                sellerAccrualWallet.Balance += sellerAccrual;
+                sellerAccrualWallet.Balance = Math.Round(sellerAccrualWallet.Balance) + sellerAccrual;
                 UserWalletService.Update(sellerAccrualWallet);
 
-                sellerWriteOffWallet.Balance -= sellerWriteOff;
+                sellerWriteOffWallet.Balance = Math.Round(sellerWriteOffWallet.Balance) - sellerWriteOff;
                 UserWalletService.Update(sellerWriteOffWallet);
 
                 var websocketUsers = WebSocketService.orderBookSubscribers
@@ -228,11 +256,11 @@ namespace Gold.IO.Exchange.API.Controllers
                 var buyOrderBalance = 0;
                 var sellOrderBalance = 0;
 
-                var buyerAccrual = sellOrder.Balance;
-                var buyerWriteOff = sellOrder.Balance * buyOrder.Price;
+                var buyerAccrual = Math.Round(sellOrder.Balance);
+                var buyerWriteOff = Math.Round(sellOrder.Balance) * Math.Round(buyOrder.Price);
 
-                var sellerAccrual = sellOrder.Balance * buyOrder.Price;
-                var sellerWriteOff = sellOrder.Balance;
+                var sellerAccrual = Math.Round(sellOrder.Balance) * Math.Round(buyOrder.Price);
+                var sellerWriteOff = Math.Round(sellOrder.Balance);
 
                 buyOrder.Balance = buyOrderBalance;
                 buyOrder.Status = OrderStatus.Closed;
@@ -242,16 +270,16 @@ namespace Gold.IO.Exchange.API.Controllers
                 sellOrder.Status = OrderStatus.Closed;
                 OrderService.Update(sellOrder);
 
-                buyerAccrualWallet.Balance += buyerAccrual;
+                buyerAccrualWallet.Balance = Math.Round(buyerAccrualWallet.Balance) + buyerAccrual;
                 UserWalletService.Update(buyerAccrualWallet);
 
-                buyerWriteOffWallet.Balance -= buyerWriteOff;
+                buyerWriteOffWallet.Balance = Math.Round(buyerWriteOffWallet.Balance) - buyerWriteOff;
                 UserWalletService.Update(buyerWriteOffWallet);
 
-                sellerAccrualWallet.Balance += sellerAccrual;
+                sellerAccrualWallet.Balance = Math.Round(sellerAccrualWallet.Balance) + sellerAccrual;
                 UserWalletService.Update(sellerAccrualWallet);
 
-                sellerWriteOffWallet.Balance -= sellerWriteOff;
+                sellerWriteOffWallet.Balance = Math.Round(sellerWriteOffWallet.Balance) - sellerWriteOff;
                 UserWalletService.Update(sellerWriteOffWallet);
 
                 var websocketUsers = WebSocketService.orderBookSubscribers
@@ -298,13 +326,13 @@ namespace Gold.IO.Exchange.API.Controllers
             if (buyOrder.Balance < sellOrder.Balance)
             {
                 var buyOrderBalance = 0;
-                var sellOrderBalance = sellOrder.Balance - buyOrder.Balance;
+                var sellOrderBalance = Math.Round(sellOrder.Balance) - Math.Round(buyOrder.Balance);
 
-                var buyerAccrual = sellOrder.Balance;
-                var buyerWriteOff = sellOrder.Balance * buyOrder.Price;
+                var buyerAccrual = Math.Round(sellOrder.Balance);
+                var buyerWriteOff = Math.Round(sellOrder.Balance) * Math.Round(buyOrder.Price);
 
-                var sellerAccrual = sellOrder.Balance * buyOrder.Price;
-                var sellerWriteOff = sellOrder.Balance;
+                var sellerAccrual = Math.Round(sellOrder.Balance) * Math.Round(buyOrder.Price);
+                var sellerWriteOff = Math.Round(sellOrder.Balance);
 
                 buyOrder.Balance = buyOrderBalance;
                 buyOrder.Status = OrderStatus.Closed;
@@ -313,16 +341,16 @@ namespace Gold.IO.Exchange.API.Controllers
                 sellOrder.Balance = sellOrderBalance;
                 OrderService.Update(sellOrder);
 
-                buyerAccrualWallet.Balance += buyerAccrual;
+                buyerAccrualWallet.Balance = Math.Round(buyerAccrualWallet.Balance) + buyerAccrual;
                 UserWalletService.Update(buyerAccrualWallet);
 
-                buyerWriteOffWallet.Balance -= buyerWriteOff;
+                buyerWriteOffWallet.Balance = Math.Round(buyerWriteOffWallet.Balance) - buyerWriteOff;
                 UserWalletService.Update(buyerWriteOffWallet);
 
-                sellerAccrualWallet.Balance += sellerAccrual;
+                sellerAccrualWallet.Balance = Math.Round(sellerAccrualWallet.Balance) + sellerAccrual;
                 UserWalletService.Update(sellerAccrualWallet);
 
-                sellerWriteOffWallet.Balance -= sellerWriteOff;
+                sellerWriteOffWallet.Balance = Math.Round(sellerWriteOffWallet.Balance) - sellerWriteOff;
                 UserWalletService.Update(sellerWriteOffWallet);
 
                 var websocketUsers = WebSocketService.orderBookSubscribers
