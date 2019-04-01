@@ -80,7 +80,7 @@ namespace Gold.IO.Exchange.API.Controllers
             {
                 var wallet = UserWalletService.GetAll()
                     .FirstOrDefault(x => x.User == user &&
-                        x.Coin == baseAssetCoin);
+                        x.Coin == quoteAssetCoin);
 
                 if (wallet.Balance < request.Amount)
                     return BadRequest(new ResponseModel
@@ -94,7 +94,7 @@ namespace Gold.IO.Exchange.API.Controllers
             {
                 var wallet = UserWalletService.GetAll()
                     .FirstOrDefault(x => x.User == user &&
-                        x.Coin == quoteAssetCoin);
+                        x.Coin == baseAssetCoin);
 
                 if (wallet.Balance < request.Amount)
                     return BadRequest(new ResponseModel
