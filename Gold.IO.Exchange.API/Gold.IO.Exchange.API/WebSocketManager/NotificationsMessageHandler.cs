@@ -40,6 +40,21 @@ namespace Gold.IO.Exchange.API.WebSocketManager
                 OrderService = orderService;
         }
 
+        public override async Task OnDisconnected(WebSocket socket)
+        {
+            var socketId = WebSocketConnectionManager.GetId(socket);
+            var socketUser = socketUsers.FirstOrDefault(x => x.ID.Equals(socketId));
+
+            if (socketUser != null)
+                socketUsers.Remove(socketUser);
+
+            var orderBookSocketUser = orderBookSubscribers.FirstOrDefault(x => x.ID.Equals(socketId));
+            if (orderBookSocketUser != null)
+                orderBookSubscribers.Remove(orderBookSocketUser);
+
+            await WebSocketConnectionManager.RemoveSocket(WebSocketConnectionManager.GetId(socket));
+        }
+
         public override async Task ReceiveAsync(WebSocket socket, WebSocketReceiveResult result, byte[] buffer)
         {
             var socketId = WebSocketConnectionManager.GetId(socket);
