@@ -175,19 +175,19 @@ namespace Gold.IO.Exchange.API.Controllers
 
             var buyerAccrualWallet = UserWalletService.GetAll()
                     .FirstOrDefault(x => x.User == buyOrder.User &&
-                        x.Coin == buyOrder.QuoteAsset);
+                        x.Coin == buyOrder.BaseAsset);
 
             var buyerWriteOffWallet = UserWalletService.GetAll()
                     .FirstOrDefault(x => x.User == buyOrder.User &&
-                        x.Coin == buyOrder.BaseAsset);
+                        x.Coin == buyOrder.QuoteAsset);
             
             var sellerAccrualWallet = UserWalletService.GetAll()
                     .FirstOrDefault(x => x.User == sellOrder.User &&
-                        x.Coin == sellOrder.BaseAsset);
+                        x.Coin == sellOrder.QuoteAsset);
 
             var sellerWriteOffWallet = UserWalletService.GetAll()
                     .FirstOrDefault(x => x.User == sellOrder.User &&
-                        x.Coin == sellOrder.QuoteAsset);
+                        x.Coin == sellOrder.BaseAsset);
 
             if (buyOrder.Balance > sellOrder.Balance)
             {
@@ -225,6 +225,12 @@ namespace Gold.IO.Exchange.API.Controllers
 
                 foreach (var wsUser in websocketUsers)
                 {
+                    WebSocketService.SendMessageAsync(wsUser.ID, JsonConvert.SerializeObject(new WebSocketMessage
+                    {
+                        Type = "orderBookUpdate",
+                        Message = JsonConvert.SerializeObject(new OrderViewModel(buyOrder))
+                    })).Wait();
+
                     WebSocketService.SendMessageAsync(wsUser.ID, JsonConvert.SerializeObject(new WebSocketMessage
                     {
                         Type = "orderBookUpdate",
@@ -291,16 +297,13 @@ namespace Gold.IO.Exchange.API.Controllers
                     WebSocketService.SendMessageAsync(wsUser.ID, JsonConvert.SerializeObject(new WebSocketMessage
                     {
                         Type = "orderBookUpdate",
-                        Message = JsonConvert.SerializeObject(new OrderViewModel(sellOrder))
+                        Message = JsonConvert.SerializeObject(new OrderViewModel(buyOrder))
                     })).Wait();
-                }
 
-                foreach (var wsUser in websocketUsers)
-                {
                     WebSocketService.SendMessageAsync(wsUser.ID, JsonConvert.SerializeObject(new WebSocketMessage
                     {
                         Type = "orderBookUpdate",
-                        Message = JsonConvert.SerializeObject(new OrderViewModel(buyOrder))
+                        Message = JsonConvert.SerializeObject(new OrderViewModel(sellOrder))
                     })).Wait();
                 }
 
@@ -363,6 +366,12 @@ namespace Gold.IO.Exchange.API.Controllers
                     {
                         Type = "orderBookUpdate",
                         Message = JsonConvert.SerializeObject(new OrderViewModel(buyOrder))
+                    })).Wait();
+
+                    WebSocketService.SendMessageAsync(wsUser.ID, JsonConvert.SerializeObject(new WebSocketMessage
+                    {
+                        Type = "orderBookUpdate",
+                        Message = JsonConvert.SerializeObject(new OrderViewModel(sellOrder))
                     })).Wait();
                 }
 
