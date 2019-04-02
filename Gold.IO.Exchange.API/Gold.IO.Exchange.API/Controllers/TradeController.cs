@@ -148,10 +148,12 @@ namespace Gold.IO.Exchange.API.Controllers
                 toCloseOrder = openOrders
                     .FirstOrDefault(x => x.Type == OrderType.Sell &&
                         x.Price <= order.Price && x.Balance > 0);
-            else
+            else if (order.Type == OrderType.Sell)
                 toCloseOrder = openOrders
                     .FirstOrDefault(x => x.Type == OrderType.Buy &&
-                        x.Price <= order.Price && x.Balance > 0);
+                        x.Price >= order.Price && x.Balance > 0);
+            else
+                toCloseOrder = null;
 
             if (toCloseOrder != null)
                 CompareTwoOrders(order, toCloseOrder, price);
