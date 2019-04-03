@@ -41,7 +41,7 @@ namespace Gold.IO.Exchange.API.Controllers
         [HttpGet("history")]
         public async Task<IActionResult> GetHistory([FromQuery] string symbol)
         {
-            var coins = symbol.Split(".");
+            var coins = symbol.Split("/");
 
             var baseAsset = CoinService.GetAll()
                 .FirstOrDefault(x => x.ShortName.Equals(coins[0]));
