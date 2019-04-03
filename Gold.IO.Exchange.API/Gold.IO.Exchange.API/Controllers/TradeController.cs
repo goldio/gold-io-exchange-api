@@ -321,11 +321,11 @@ namespace Gold.IO.Exchange.API.Controllers
                 var buyOrderBalance = 0;
                 var sellOrderBalance = Math.Round(sellOrder.Balance, 8) - Math.Round(buyOrder.Balance, 8);
 
-                var buyerAccrual = Math.Round(sellOrder.Balance, 8);
-                var buyerWriteOff = Math.Round(sellOrder.Balance, 8) * Math.Round(buyOrder.Price, 8);
+                var buyerAccrual = Math.Round(buyOrder.Balance, 8);
+                var buyerWriteOff = Math.Round(buyOrder.Balance, 8) * Math.Round(buyOrder.Price, 8);
 
-                var sellerAccrual = Math.Round(sellOrder.Balance, 8) * Math.Round(buyOrder.Price, 8);
-                var sellerWriteOff = Math.Round(sellOrder.Balance, 8);
+                var sellerAccrual = Math.Round(buyOrder.Balance, 8) * Math.Round(buyOrder.Price, 8);
+                var sellerWriteOff = Math.Round(buyOrder.Balance, 8);
 
                 buyOrder.Balance = buyOrderBalance;
                 buyOrder.Status = OrderStatus.Closed;
