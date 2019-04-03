@@ -61,11 +61,11 @@ namespace Gold.IO.Exchange.API.Controllers
                     s = "no_data"
                 });
 
-            var startTime = (int)(DateTime.UtcNow.Subtract(orders.Min(x => x.Time)).TotalSeconds);
-            var endTime = (int)(DateTime.UtcNow.Subtract(orders.OrderBy(x => x.Time).First().Time).TotalSeconds);
+            var startTime = DateToUnixTimestamp(orders.Min(x => x.Time));
+            var endTime = DateToUnixTimestamp(orders.OrderBy(x => x.Time).First().Time);
             var fiveMinutes = 5 * 60 * 1000;
 
-            var t = new List<int>() { startTime };
+            var t = new List<double>() { startTime };
             var tempT = startTime;
 
             while (tempT < endTime)
@@ -202,6 +202,13 @@ namespace Gold.IO.Exchange.API.Controllers
             DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, System.DateTimeKind.Utc);
             dtDateTime = dtDateTime.AddSeconds(unixTimeStamp).ToLocalTime();
             return dtDateTime;
+        }
+
+        public static double DateToUnixTimestamp(DateTime date)
+        {
+            DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0);
+            TimeSpan diff = date - origin;
+            return Math.Floor(diff.TotalSeconds);
         }
     }
 }
