@@ -134,7 +134,7 @@ namespace Gold.IO.Exchange.API.Controllers
                 WebSocketService.SendMessageAsync(wsUser.ID, JsonConvert.SerializeObject(new WebSocketMessage
                 {
                     Type = "orderBookUpdate",
-                    Message = JsonConvert.SerializeObject(new OrderViewModel(order))
+                    Message = "orderBookUpdate"
                 })).Wait();
             }
 
@@ -230,13 +230,7 @@ namespace Gold.IO.Exchange.API.Controllers
                     WebSocketService.SendMessageAsync(wsUser.ID, JsonConvert.SerializeObject(new WebSocketMessage
                     {
                         Type = "orderBookUpdate",
-                        Message = JsonConvert.SerializeObject(new OrderViewModel(buyOrder))
-                    })).Wait();
-
-                    WebSocketService.SendMessageAsync(wsUser.ID, JsonConvert.SerializeObject(new WebSocketMessage
-                    {
-                        Type = "orderBookUpdate",
-                        Message = JsonConvert.SerializeObject(new OrderViewModel(sellOrder))
+                        Message = "orderBookUpdate"
                     })).Wait();
                 }
 
@@ -252,7 +246,7 @@ namespace Gold.IO.Exchange.API.Controllers
                     WebSocketService.SendMessageAsync(wsUser.ID, JsonConvert.SerializeObject(new WebSocketMessage
                     {
                         Type = "priceUpdate",
-                        Message = JsonConvert.SerializeObject(price)
+                        Message = "priceUpdate"
                     })).Wait();
                 }
 
@@ -299,13 +293,7 @@ namespace Gold.IO.Exchange.API.Controllers
                     WebSocketService.SendMessageAsync(wsUser.ID, JsonConvert.SerializeObject(new WebSocketMessage
                     {
                         Type = "orderBookUpdate",
-                        Message = JsonConvert.SerializeObject(new OrderViewModel(buyOrder))
-                    })).Wait();
-
-                    WebSocketService.SendMessageAsync(wsUser.ID, JsonConvert.SerializeObject(new WebSocketMessage
-                    {
-                        Type = "orderBookUpdate",
-                        Message = JsonConvert.SerializeObject(new OrderViewModel(sellOrder))
+                        Message = "orderBookUpdate"
                     })).Wait();
                 }
 
@@ -321,7 +309,7 @@ namespace Gold.IO.Exchange.API.Controllers
                     WebSocketService.SendMessageAsync(wsUser.ID, JsonConvert.SerializeObject(new WebSocketMessage
                     {
                         Type = "priceUpdate",
-                        Message = JsonConvert.SerializeObject(price)
+                        Message = "priceUpdate"
                     })).Wait();
                 }
 
@@ -367,13 +355,7 @@ namespace Gold.IO.Exchange.API.Controllers
                     WebSocketService.SendMessageAsync(wsUser.ID, JsonConvert.SerializeObject(new WebSocketMessage
                     {
                         Type = "orderBookUpdate",
-                        Message = JsonConvert.SerializeObject(new OrderViewModel(buyOrder))
-                    })).Wait();
-
-                    WebSocketService.SendMessageAsync(wsUser.ID, JsonConvert.SerializeObject(new WebSocketMessage
-                    {
-                        Type = "orderBookUpdate",
-                        Message = JsonConvert.SerializeObject(new OrderViewModel(sellOrder))
+                        Message = "orderBookUpdate"
                     })).Wait();
                 }
 
@@ -389,7 +371,7 @@ namespace Gold.IO.Exchange.API.Controllers
                     WebSocketService.SendMessageAsync(wsUser.ID, JsonConvert.SerializeObject(new WebSocketMessage
                     {
                         Type = "priceUpdate",
-                        Message = JsonConvert.SerializeObject(price)
+                        Message = "priceUpdate"
                     })).Wait();
                 }
 
