@@ -38,6 +38,12 @@ namespace Gold.IO.Exchange.API.Controllers
             });
         }
 
+        [HttpGet("time")]
+        public async Task<IActionResult> GetServerTime()
+        {
+            return Ok(DateToUnixTimestamp(DateTime.UtcNow));
+        }
+
         [HttpGet("history")]
         public async Task<IActionResult> GetHistory([FromQuery] string symbol)
         {
@@ -58,61 +64,86 @@ namespace Gold.IO.Exchange.API.Controllers
             if (orders == null || orders.Count == 0)
                 return Ok(new
                 {
-                    s = "no_data"
+                    s = "no_data",
+                    nextTime = DateToUnixTimestamp(DateTime.UtcNow) + 60
                 });
 
             var startTime = DateToUnixTimestamp(orders.Min(x => x.Time));
-            var endTime = DateToUnixTimestamp(orders.OrderBy(x => x.Time).First().Time);
-            var fiveMinutes = 5 * 60 * 1000;
+            var endTime = DateToUnixTimestamp(orders.Max(x => x.Time));
+            var oneMinute = 1 * 60;
 
             var t = new List<double>() { startTime };
             var tempT = startTime;
 
             while (tempT < endTime)
             {
-                t.Add(tempT + fiveMinutes);
-                tempT += fiveMinutes;
+                t.Add(tempT + oneMinute);
+                tempT += oneMinute;
             }
 
             var o = new List<double>();
             for (var i = 0; i < t.Count; i++)
             {
                 if (i != t.Count - 1)
-                    o.Add(orders.FirstOrDefault(x => x.Time >= UnixTimeStampToDateTime(t[i]) && 
-                        x.Time <= UnixTimeStampToDateTime(t[i + 1]))
-                    .Price);
+                {
+                    var op = orders.FirstOrDefault(x => DateToUnixTimestamp(x.Time) >= t[i] &&
+                        DateToUnixTimestamp(x.Time) <= t[i + 1]);
+
+                    if (op != null)
+                        o.Add(op.Price);
+                }
             }
 
             var c = new List<double>();
             for (var i = 0; i < t.Count; i++)
             {
-                c.Add(orders.AsEnumerable().LastOrDefault(x => x.Time >= UnixTimeStampToDateTime(t[i]) &&
-                    x.Time <= UnixTimeStampToDateTime(t[i + 1]))
-                .Price);
+                if (i != t.Count - 1)
+                {
+                    var oc = orders.AsEnumerable().LastOrDefault(x => DateToUnixTimestamp(x.Time) >= t[i] &&
+                        DateToUnixTimestamp(x.Time) <= t[i + 1]);
+
+                    if (oc != null)
+                        c.Add(oc.Price);
+                }
             }
 
             var h = new List<double>();
             for (var i = 0; i < t.Count; i++)
             {
-                h.Add(orders.Where(x => x.Time >= UnixTimeStampToDateTime(t[i]) &&
-                    x.Time <= UnixTimeStampToDateTime(t[i + 1]))
-                    .Max(x => x.Price));
+                var oh = orders.Where(x => DateToUnixTimestamp(x.Time) >= t[i] &&
+                        DateToUnixTimestamp(x.Time) <= t[i + 1])
+                        .ToList();
+
+                if (oh != null && oh.Count != 0)
+                    h.Add(oh.Max(x => x.Price));
             }
 
             var l = new List<double>();
             for (var i = 0; i < t.Count; i++)
             {
-                l.Add(orders.Where(x => x.Time >= UnixTimeStampToDateTime(t[i]) &&
-                    x.Time <= UnixTimeStampToDateTime(t[i + 1]))
-                    .Min(x => x.Price));
+                var ol = orders.Where(x => DateToUnixTimestamp(x.Time) >= t[i] &&
+                        DateToUnixTimestamp(x.Time) <= t[i + 1])
+                        .ToList();
+
+                if (ol != null && ol.Count != 0)
+                    l.Add(ol.Min(x => x.Price));
             }
 
             var v = new List<double>();
             for (var i = 0; i < t.Count; i++)
             {
-                v.Add(orders.Where(x => x.Time >= UnixTimeStampToDateTime(t[i]) &&
-                    x.Time <= UnixTimeStampToDateTime(t[i + 1]))
-                    .Sum(x => x.Amount));
+                var ov = orders.Where(x => DateToUnixTimestamp(x.Time) >= t[i] &&
+                        DateToUnixTimestamp(x.Time) <= t[i + 1])
+                        .ToList();
+
+                if (ov != null && ov.Count != 0)
+                    v.Add(ov.Sum(x => x.Amount));
+            }
+
+            if (t.Count != v.Count)
+            {
+                while (t.Count != v.Count)
+                    t.Remove(t.AsEnumerable().Last());
             }
 
             return Ok(new { t, o, c, h, l, v, s = "ok" });
@@ -175,7 +206,7 @@ namespace Gold.IO.Exchange.API.Controllers
             public string Name { get; set; }
 
             [JsonProperty("pointvalue")]
-            public int PointValue { get; set; }
+            public double PointValue { get; set; }
 
             [JsonProperty("pricescale")]
             public int Pricescale { get; set; }
@@ -184,7 +215,7 @@ namespace Gold.IO.Exchange.API.Controllers
             public string Session { get; set; }
 
             [JsonProperty("supported_resolutions")]
-            public string[] SupportedResolutions { get; set; } = new string[] { "D", "2D", "3D", "W", "3W", "M", "6M" };
+            public string[] SupportedResolutions { get; set; } = new string[] { "1", "5", "15", "30", "60", "1D", "1W", "1M" };
 
             [JsonProperty("ticker")]
             public string Ticker { get; set; }
@@ -193,7 +224,7 @@ namespace Gold.IO.Exchange.API.Controllers
             public string Timezone { get; set; } = "Etc/UTC";
 
             [JsonProperty("type")]
-            public string Type { get; set; } = "bitcoin";
+            public string Type { get; set; } = "stock";
         }
 
         public static DateTime UnixTimeStampToDateTime(double unixTimeStamp)
