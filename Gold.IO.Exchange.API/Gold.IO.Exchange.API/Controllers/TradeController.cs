@@ -117,12 +117,6 @@ namespace Gold.IO.Exchange.API.Controllers
                 Time = DateTime.UtcNow
             };
 
-            var price = new PriceViewModel
-            {
-                Price = GetCurrentPrice(request.BaseAsset, request.QuoteAsset),
-                IsHigher = true
-            };
-
             OrderService.Create(order);
 
             var websocketUsers = WebSocketService.orderBookSubscribers
@@ -138,6 +132,13 @@ namespace Gold.IO.Exchange.API.Controllers
                 })).Wait();
             }
 
+            SearchComparedOrder(order);
+
+            return Json(new ResponseModel());
+        }
+
+        private async Task SearchComparedOrder(Order order)
+        {
             var openOrders = OrderService.GetAll()
                 .Where(x => x.ID != order.ID &&
                     x.Status == OrderStatus.Open);
@@ -156,12 +157,12 @@ namespace Gold.IO.Exchange.API.Controllers
                 toCloseOrder = null;
 
             if (toCloseOrder != null)
-                CompareTwoOrders(order, toCloseOrder, price);
+                CompareTwoOrders(order, toCloseOrder);
 
-            return Json(new ResponseModel());
+            return;
         }
 
-        private void CompareTwoOrders(Order order1, Order order2, PriceViewModel price)
+        private void CompareTwoOrders(Order order1, Order order2)
         {
             var orders = new List<Order>
             {
@@ -234,13 +235,6 @@ namespace Gold.IO.Exchange.API.Controllers
                     })).Wait();
                 }
 
-                if (buyOrder.Price >= price.Price)
-                    price.IsHigher = true;
-                else
-                    price.IsHigher = false;
-
-                price.Price = buyOrder.Price;
-
                 foreach (var wsUser in websocketUsers)
                 {
                     WebSocketService.SendMessageAsync(wsUser.ID, JsonConvert.SerializeObject(new WebSocketMessage
@@ -248,9 +242,10 @@ namespace Gold.IO.Exchange.API.Controllers
                         Type = "priceUpdate",
                         Message = "priceUpdate"
                     })).Wait();
+
                 }
 
-                return;
+                SearchComparedOrder(buyOrder);
             }
 
             if (buyOrder.Balance == sellOrder.Balance)
@@ -296,13 +291,6 @@ namespace Gold.IO.Exchange.API.Controllers
                         Message = "orderBookUpdate"
                     })).Wait();
                 }
-
-                if (buyOrder.Price >= price.Price)
-                    price.IsHigher = true;
-                else
-                    price.IsHigher = false;
-
-                price.Price = buyOrder.Price;
 
                 foreach (var wsUser in websocketUsers)
                 {
@@ -359,13 +347,6 @@ namespace Gold.IO.Exchange.API.Controllers
                     })).Wait();
                 }
 
-                if (buyOrder.Price >= price.Price)
-                    price.IsHigher = true;
-                else
-                    price.IsHigher = false;
-
-                price.Price = buyOrder.Price;
-
                 foreach (var wsUser in websocketUsers)
                 {
                     WebSocketService.SendMessageAsync(wsUser.ID, JsonConvert.SerializeObject(new WebSocketMessage
@@ -374,6 +355,8 @@ namespace Gold.IO.Exchange.API.Controllers
                         Message = "priceUpdate"
                     })).Wait();
                 }
+
+                SearchComparedOrder(sellOrder);
 
                 return;
             }
