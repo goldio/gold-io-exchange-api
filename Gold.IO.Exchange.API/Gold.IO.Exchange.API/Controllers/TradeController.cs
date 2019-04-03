@@ -436,6 +436,45 @@ namespace Gold.IO.Exchange.API.Controllers
             });
         }
 
+        [HttpGet("pairs/{symbol}/stats")]
+        public async Task<IActionResult> GetPairStats(string symbol)
+        {
+            var coins = symbol.Split(".");
+
+            var baseAsset = CoinService.GetAll()
+                .FirstOrDefault(x => x.ShortName.Equals(coins[0]));
+
+            var quoteAsset = CoinService.GetAll()
+                .FirstOrDefault(x => x.ShortName.Equals(coins[1]));
+
+            if (baseAsset == null || quoteAsset == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Coin error"
+                });
+
+            var now = DateTime.UtcNow;
+
+            var dailyOrders = OrderService.GetAll()
+                .FirstOrDefault(x => x.Time >= new DateTime(now.Year, now.Month, now.Day, 0, 0, 0) &&
+                    x.Time <= new DateTime(now.Year, now.Month, now.Day, 23, 59, 59));
+
+            var stats = new PairStatsViewModel
+            {
+                Last = GetCurrentPrice(baseAsset.ShortName, quoteAsset.ShortName),
+                Change = 0,
+                High = 0,
+                Low = 0,
+                Volume = 0
+            };
+
+            return Ok(new DataResponse<PairStatsViewModel>
+            {
+                Data = stats
+            });
+        }
+
         [HttpGet("pairs/{symbol}/orders/open")]
         public async Task<IActionResult> GetOpenOrders(string symbol)
         {
