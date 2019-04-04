@@ -172,6 +172,7 @@ namespace Gold.IO.Exchange.API.Controllers
                 Name = $"{coins[0]}/{coins[1]}",
                 PointValue = 1,
                 Pricescale = 1000000,
+                Session = "0000-2330",
                 Ticker = $"{coins[0]}/{coins[1]}"
             };
 
