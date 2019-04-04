@@ -250,6 +250,17 @@ namespace Gold.IO.Exchange.API.Controllers
                     })).Wait();
                 }
 
+                var openOrders = OrderService.GetAll()
+                    .Where(x => x.ID != buyOrder.ID &&
+                        x.Status == OrderStatus.Open);
+
+                var toCloseOrder = openOrders
+                        .FirstOrDefault(x => x.Type == OrderType.Sell &&
+                            x.Price <= buyOrder.Price && x.Balance > 0);
+
+                if (toCloseOrder != null)
+                    CompareTwoOrders(buyOrder, toCloseOrder, price);
+
                 return;
             }
 
@@ -374,6 +385,17 @@ namespace Gold.IO.Exchange.API.Controllers
                         Message = "priceUpdate"
                     })).Wait();
                 }
+
+                var openOrders = OrderService.GetAll()
+                    .Where(x => x.ID != sellOrder.ID &&
+                        x.Status == OrderStatus.Open);
+
+                var toCloseOrder = openOrders
+                        .FirstOrDefault(x => x.Type == OrderType.Buy &&
+                            x.Price >= sellOrder.Price && x.Balance > 0);
+
+                if (toCloseOrder != null)
+                    CompareTwoOrders(sellOrder, toCloseOrder, price);
 
                 return;
             }
