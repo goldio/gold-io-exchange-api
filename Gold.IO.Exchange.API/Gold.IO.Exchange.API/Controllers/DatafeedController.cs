@@ -171,8 +171,7 @@ namespace Gold.IO.Exchange.API.Controllers
                 Minmov2 = 0,
                 Name = $"{coins[0]}/{coins[1]}",
                 PointValue = 1,
-                Pricescale = 1,
-                Session = "0930-1630",
+                Pricescale = 1000000,
                 Ticker = $"{coins[0]}/{coins[1]}"
             };
 
