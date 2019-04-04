@@ -224,7 +224,7 @@ namespace Gold.IO.Exchange.API.Controllers
             public string Timezone { get; set; } = "Etc/UTC";
 
             [JsonProperty("type")]
-            public string Type { get; set; } = "stock";
+            public string Type { get; set; } = "bitcoin";
         }
 
         public static DateTime UnixTimeStampToDateTime(double unixTimeStamp)
