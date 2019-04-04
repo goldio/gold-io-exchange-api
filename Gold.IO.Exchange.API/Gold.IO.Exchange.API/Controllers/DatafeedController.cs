@@ -31,7 +31,7 @@ namespace Gold.IO.Exchange.API.Controllers
         {
             return Ok(new
             {
-                supported_resolutions = new[] { "1", "5", "15", "30", "60" },
+                supported_resolutions = new[] { "1", "5", "15", "30", "60", "1D" },
                 supports_group_request = false,
                 supports_marks = false,
                 supports_search = true,
@@ -210,7 +210,7 @@ namespace Gold.IO.Exchange.API.Controllers
             public string Session { get; set; }
 
             [JsonProperty("supported_resolutions")]
-            public string[] SupportedResolutions { get; set; } = new string[] { "1", "5", "15", "30", "60" };
+            public string[] SupportedResolutions { get; set; } = new string[] { "1", "5", "15", "30", "60", "1D" };
 
             [JsonProperty("ticker")]
             public string Ticker { get; set; }
