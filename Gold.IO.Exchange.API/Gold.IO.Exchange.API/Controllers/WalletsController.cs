@@ -221,9 +221,9 @@ namespace Gold.IO.Exchange.API.Controllers
 
                 foreach (var order in orders)
                 {
-                    if (order.Type == OrderType.Buy && order.BaseAsset == coin)
-                        inOrders += order.Balance;
-                    else if (order.Type == OrderType.Sell && order.QuoteAsset == coin)
+                    if (order.Type == OrderType.Buy && order.QuoteAsset == coin)
+                        inOrders += order.Balance * order.Price;
+                    else if (order.Type == OrderType.Sell && order.BaseAsset == coin)
                         inOrders += order.Balance;
                 }
 
