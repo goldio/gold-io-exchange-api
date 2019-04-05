@@ -34,25 +34,31 @@ namespace Gold.IO.Exchange.API.Controllers
     {
         private IUserService UserService { get; set; }
         private IUserWalletService WalletService { get; set; }
+        private ICoinService CoinService { get; set; }
         private ICoinAddressService CoinAddressService { get; set; }
         private ICoinAccountService CoinAccountService { get; set; }
         private IUserWalletOperationService WalletOperationService { get; set; }
         private IBitcoinService BitcoinService { get; set; }
+        private IOrderService OrderService { get; set; }
 
         public WalletsController([FromServices]
             IUserService userService,
             IUserWalletService walletService,
+            ICoinService coinService,
             ICoinAddressService coinAddressService,
             ICoinAccountService coinAccountService,
             IUserWalletOperationService walletOperationService,
-            IBitcoinService bitcoinService)
+            IBitcoinService bitcoinService,
+            IOrderService orderService)
         {
             UserService = userService;
             WalletService = walletService;
+            CoinService = coinService;
             CoinAddressService = coinAddressService;
             CoinAccountService = coinAccountService;
             WalletOperationService = walletOperationService;
             BitcoinService = bitcoinService;
+            OrderService = orderService;
         }
 
         [HttpGet("eth/{address}/balance")]
@@ -201,7 +207,30 @@ namespace Gold.IO.Exchange.API.Controllers
                 .Select(x => new UserWalletViewModel(x))
                 .ToList();
 
-            return Json(new DataResponse<List<UserWalletViewModel>> { Data = wallets });
+            var data = new List<UserWalletViewModel>();
+            foreach (var wallet in wallets)
+            {
+                double inOrders = 0;
+
+                var coin = CoinService.Get(wallet.Coin.ID);
+
+                var orders = OrderService.GetAll()
+                    .Where(x => x.User == user &&
+                        x.Status == OrderStatus.Open)
+                    .ToList();
+
+                foreach (var order in orders)
+                {
+                    if (order.Type == OrderType.Buy && order.BaseAsset == coin)
+                        inOrders += order.Balance;
+                    else if (order.Type == OrderType.Sell && order.QuoteAsset == coin)
+                        inOrders += order.Balance;
+                }
+
+                data.Add(new UserWalletViewModel(WalletService.Get(wallet.ID), inOrders, 0));
+            }
+
+            return Json(new DataResponse<List<UserWalletViewModel>> { Data = data });
         }
 
         [HttpGet("me/history/deposit")]
