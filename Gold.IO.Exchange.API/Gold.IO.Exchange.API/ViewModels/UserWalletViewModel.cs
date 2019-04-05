@@ -1,5 +1,6 @@
 ﻿
 using Gold.IO.Exchange.API.Domain.User;
+using System;
 
 namespace Gold.IO.Exchange.API.ViewModels
 {
@@ -32,7 +33,7 @@ namespace Gold.IO.Exchange.API.ViewModels
             Coin = new CoinViewModel(wallet.Coin);
             User = new UserViewModel(wallet.User);
             TotalBalance = wallet.Balance;
-            AvailableBalance = wallet.Balance;
+            AvailableBalance = Math.Round(wallet.Balance) - Math.Round(inOrders);
             InOrders = inOrders;
             Cost = 0;
         }
@@ -43,7 +44,7 @@ namespace Gold.IO.Exchange.API.ViewModels
             Coin = new CoinViewModel(wallet.Coin);
             User = new UserViewModel(wallet.User);
             TotalBalance = wallet.Balance;
-            AvailableBalance = wallet.Balance;
+            AvailableBalance = Math.Round(wallet.Balance) - Math.Round(inOrders);
             InOrders = inOrders;
             Cost = cost;
         }
