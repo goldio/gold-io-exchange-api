@@ -481,7 +481,8 @@ namespace Gold.IO.Exchange.API.Controllers
             var dailyOrders = OrderService.GetAll()
                 .Where(x => x.Time >= new DateTime(now.Year, now.Month, now.Day, 0, 0, 0) &&
                     x.Time <= new DateTime(now.Year, now.Month, now.Day, 23, 59, 59) &&
-                    x.Status == OrderStatus.Closed);
+                    x.Status == OrderStatus.Closed)
+                .ToList();
 
             var lastOrder = OrderService.GetAll()
                 .AsEnumerable()
