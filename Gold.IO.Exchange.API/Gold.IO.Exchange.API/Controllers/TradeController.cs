@@ -605,8 +605,8 @@ namespace Gold.IO.Exchange.API.Controllers
                 .Where(x => x.BaseAsset == baseAsset &&
                     x.QuoteAsset == quoteAsset &&
                     x.Status == OrderStatus.Closed)
+                .OrderByDescending(x => x.Time)
                 .Select(x => new OrderViewModel(x))
-                .Reverse()
                 .ToList();
 
             return Ok(new DataResponse<List<OrderViewModel>>
