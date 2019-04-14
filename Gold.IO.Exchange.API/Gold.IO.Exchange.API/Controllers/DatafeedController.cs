@@ -34,7 +34,7 @@ namespace Gold.IO.Exchange.API.Controllers
                 supported_resolutions = new[] { "1", "5", "15", "30", "60", "1D", "1W", "1M" },
                 supports_group_request = false,
                 supports_marks = false,
-                supports_search = false,
+                supports_search = true,
                 supports_timescale_marks = false
             });
         }
