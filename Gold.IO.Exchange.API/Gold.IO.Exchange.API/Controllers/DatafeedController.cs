@@ -71,7 +71,7 @@ namespace Gold.IO.Exchange.API.Controllers
 
             var startTime = DateToUnixTimestamp(orders.Min(x => x.Time));
             var endTime = DateToUnixTimestamp(orders.Max(x => x.Time));
-            var oneMinute = 1 * 60;
+            var oneMinute = 5 * 60;
 
             var t = new List<double>() { startTime };
             var tempT = startTime;
