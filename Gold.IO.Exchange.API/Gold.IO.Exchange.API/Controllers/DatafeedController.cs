@@ -31,7 +31,7 @@ namespace Gold.IO.Exchange.API.Controllers
         {
             return Ok(new
             {
-                supported_resolutions = new[] { "1", "5", "15", "30", "60", "1D", "1W", "1M" },
+                supported_resolutions = new[] { "1", "5", "15", "30", "60", "1D" },
                 supports_group_request = false,
                 supports_marks = false,
                 supports_search = true,
@@ -46,7 +46,7 @@ namespace Gold.IO.Exchange.API.Controllers
         }
 
         [HttpGet("history")]
-        public async Task<IActionResult> GetHistory([FromQuery] string symbol)
+        public async Task<IActionResult> GetHistory([FromQuery] string symbol, [FromQuery] string resolution)
         {
             var coins = symbol.Split("/");
 
@@ -71,15 +71,30 @@ namespace Gold.IO.Exchange.API.Controllers
 
             var startTime = DateToUnixTimestamp(orders.Min(x => x.Time));
             var endTime = DateToUnixTimestamp(orders.Max(x => x.Time));
-            var oneMinute = 5 * 60;
+            var interval = 60;
+
+            if (resolution == "1")
+                interval *= 1;
+            else if (resolution == "5")
+                interval *= 5;
+            else if (resolution == "15")
+                interval *= 15;
+            else if (resolution == "30")
+                interval *= 30;
+            else if (resolution == "60")
+                interval *= 60;
+            else if (resolution == "D" || resolution == "1D")
+                interval *= (60 * 24);
+            else
+                interval *= 1;
 
             var t = new List<double>() { startTime };
             var tempT = startTime;
 
             while (tempT < endTime)
             {
-                t.Add(tempT + oneMinute);
-                tempT += oneMinute;
+                t.Add(tempT + interval);
+                tempT += interval;
             }
 
             var o = new List<double>();
@@ -209,7 +224,7 @@ namespace Gold.IO.Exchange.API.Controllers
             public string Session { get; set; }
 
             [JsonProperty("supported_resolutions")]
-            public string[] SupportedResolutions { get; set; } = new string[] { "1", "5", "15", "30", "60", "1D", "1W", "1M" };
+            public string[] SupportedResolutions { get; set; } = new string[] { "1", "5", "15", "30", "60", "1D" };
 
             [JsonProperty("ticker")]
             public string Ticker { get; set; }
