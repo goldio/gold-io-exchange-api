@@ -486,10 +486,11 @@ namespace Gold.IO.Exchange.API.Controllers
 
             var lastOrder = OrderService.GetAll()
                 .AsEnumerable()
-                .LastOrDefault();
+                .LastOrDefault(x => x.Status == OrderStatus.Closed);
 
             var prevDayOrder = OrderService.GetAll()
-                .FirstOrDefault(x => x.Time <= lastOrder.Time.Subtract(TimeSpan.FromDays(1)));
+                .FirstOrDefault(x => x.Time <= lastOrder.Time.Subtract(TimeSpan.FromDays(1)) &&
+                    x.Status == OrderStatus.Closed);
 
             var stats = new PairStatsViewModel
             {
