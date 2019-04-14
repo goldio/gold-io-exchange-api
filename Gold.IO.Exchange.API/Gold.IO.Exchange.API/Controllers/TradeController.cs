@@ -479,16 +479,24 @@ namespace Gold.IO.Exchange.API.Controllers
             var now = DateTime.UtcNow;
 
             var dailyOrders = OrderService.GetAll()
-                .FirstOrDefault(x => x.Time >= new DateTime(now.Year, now.Month, now.Day, 0, 0, 0) &&
-                    x.Time <= new DateTime(now.Year, now.Month, now.Day, 23, 59, 59));
+                .Where(x => x.Time >= new DateTime(now.Year, now.Month, now.Day, 0, 0, 0) &&
+                    x.Time <= new DateTime(now.Year, now.Month, now.Day, 23, 59, 59) &&
+                    x.Status == OrderStatus.Closed);
+
+            var lastOrder = OrderService.GetAll()
+                .AsEnumerable()
+                .LastOrDefault();
+
+            var prevDayOrder = OrderService.GetAll()
+                .FirstOrDefault(x => x.Time <= lastOrder.Time.Subtract(TimeSpan.FromDays(1)));
 
             var stats = new PairStatsViewModel
             {
                 Last = GetCurrentPrice(baseAsset.ShortName, quoteAsset.ShortName),
-                Change = 0,
-                High = 0,
-                Low = 0,
-                Volume = 0
+                Change = Math.Round(lastOrder.Price, 8) - Math.Round(prevDayOrder.Price, 8),
+                High = dailyOrders.Max(x => x.Price),
+                Low = dailyOrders.Min(x => x.Price),
+                Volume = dailyOrders.Sum(x => x.Amount)
             };
 
             return Ok(new DataResponse<PairStatsViewModel>
@@ -642,6 +650,7 @@ namespace Gold.IO.Exchange.API.Controllers
                     x.QuoteAsset == quoteAsset &&
                     x.Status == OrderStatus.Open &&
                     x.User == user)
+                .OrderByDescending(x => x.Time)
                 .Select(x => new OrderViewModel(x))
                 .ToList();
 
