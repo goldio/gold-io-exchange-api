@@ -160,14 +160,13 @@ namespace Gold.IO.Exchange.API.Controllers
                 Description = $"{coins[0]}/{coins[1]}",
                 ExchangeListed = "GOLD.IO",
                 ExchangeTraded = "GOLD.IO",
-                HasIntraday = false,
+                HasIntraday = true,
                 HasNoVolume = false,
                 Minmov = 1,
-                Minmov2 = 0,
                 Name = $"{coins[0]}/{coins[1]}",
                 PointValue = 1,
-                Pricescale = 1000000,
-                Session = "0000-2330",
+                Pricescale = 100000000,
+                Session = "24x7",
                 Ticker = $"{coins[0]}/{coins[1]}"
             };
 
@@ -219,7 +218,7 @@ namespace Gold.IO.Exchange.API.Controllers
             public string Timezone { get; set; } = "Etc/UTC";
 
             [JsonProperty("type")]
-            public string Type { get; set; } = "bitcoin";
+            public string Type { get; set; } = "crypto";
         }
 
         public static DateTime UnixTimeStampToDateTime(double unixTimeStamp)
