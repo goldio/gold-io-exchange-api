@@ -570,8 +570,14 @@ namespace Gold.IO.Exchange.API.Controllers
 
             var response = new OpenOrdersResponse
             {
-                BuyOrders = orders.Where(x => x.Type == OrderType.Buy).Select(x => new OrderViewModel(x)).ToList(),
-                SellOrders = orders.Where(x => x.Type == OrderType.Sell).Select(x => new OrderViewModel(x)).ToList()
+                BuyOrders = orders.Where(x => x.Type == OrderType.Buy)
+                    .OrderByDescending(x => x.Price)
+                    .Select(x => new OrderViewModel(x))
+                    .ToList(),
+                SellOrders = orders.Where(x => x.Type == OrderType.Sell)
+                    .OrderByDescending(x => x.Price)
+                    .Select(x => new OrderViewModel(x))
+                    .ToList()
             };
 
             return Ok(response);
@@ -600,6 +606,7 @@ namespace Gold.IO.Exchange.API.Controllers
                     x.QuoteAsset == quoteAsset &&
                     x.Status == OrderStatus.Closed)
                 .Select(x => new OrderViewModel(x))
+                .Reverse()
                 .ToList();
 
             return Ok(new DataResponse<List<OrderViewModel>>
