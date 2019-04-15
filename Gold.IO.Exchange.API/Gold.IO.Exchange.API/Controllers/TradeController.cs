@@ -494,12 +494,26 @@ namespace Gold.IO.Exchange.API.Controllers
 
             var stats = new PairStatsViewModel
             {
-                Last = GetCurrentPrice(baseAsset.ShortName, quoteAsset.ShortName),
-                Change = Math.Round(lastOrder.Price, 8) - Math.Round(prevDayOrder.Price, 8),
-                High = dailyOrders.Max(x => x.Price),
-                Low = dailyOrders.Min(x => x.Price),
-                Volume = dailyOrders.Sum(x => x.Amount)
+                Last = GetCurrentPrice(baseAsset.ShortName, quoteAsset.ShortName)
             };
+
+            if (lastOrder != null && prevDayOrder != null)
+                stats.Change = Math.Round(lastOrder.Price, 8) - Math.Round(prevDayOrder.Price, 8);
+            else
+                stats.Change = 0;
+
+            if (dailyOrders != null && dailyOrders.Count != 0)
+            {
+                stats.High = dailyOrders.Max(x => x.Price);
+                stats.Low = dailyOrders.Min(x => x.Price);
+                stats.Volume = dailyOrders.Sum(x => x.Amount);
+            }
+            else
+            {
+                stats.High = 0;
+                stats.Low = 0;
+                stats.Volume = 0;
+            }
 
             return Ok(new DataResponse<PairStatsViewModel>
             {
