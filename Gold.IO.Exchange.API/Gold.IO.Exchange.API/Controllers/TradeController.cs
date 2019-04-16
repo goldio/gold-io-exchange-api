@@ -483,16 +483,22 @@ namespace Gold.IO.Exchange.API.Controllers
             var dailyOrders = OrderService.GetAll()
                 .Where(x => x.Time >= new DateTime(now.Year, now.Month, now.Day, 0, 0, 0) &&
                     x.Time <= new DateTime(now.Year, now.Month, now.Day, 23, 59, 59) &&
-                    x.Status == OrderStatus.Closed)
+                    x.Status == OrderStatus.Closed &&
+                    x.BaseAsset == baseAsset &&
+                    x.QuoteAsset == quoteAsset)
                 .ToList();
 
             var lastOrder = OrderService.GetAll()
                 .AsEnumerable()
-                .LastOrDefault(x => x.Status == OrderStatus.Closed);
+                .LastOrDefault(x => x.Status == OrderStatus.Closed &&
+                    x.BaseAsset == baseAsset &&
+                    x.QuoteAsset == quoteAsset);
 
             var prevDayOrder = OrderService.GetAll()
                 .FirstOrDefault(x => x.Time <= lastOrder.Time.Subtract(TimeSpan.FromDays(1)) &&
-                    x.Status == OrderStatus.Closed);
+                    x.Status == OrderStatus.Closed &&
+                    x.BaseAsset == baseAsset &&
+                    x.QuoteAsset == quoteAsset);
 
             var stats = new PairStatsViewModel
             {
