@@ -128,7 +128,9 @@ namespace Gold.IO.Exchange.API.Controllers
             };
 
             var orders = OrderService.GetAll()
-                .Where(x => x.Status == Domain.Enum.OrderStatus.Open)
+                .Where(x => x.BaseAsset == baseCoin &&
+                    x.QuoteAsset == quoteCoin &&
+                    x.Status == Domain.Enum.OrderStatus.Open)
                 .ToList();
 
             foreach (var order in orders)
