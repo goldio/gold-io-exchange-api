@@ -5,6 +5,7 @@ using Gold.IO.Exchange.API.ViewModels.Response;
 using Binance.Net.Objects;
 using Gold.IO.Exchange.API.BusinessLogic.Interfaces;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace Gold.IO.Exchange.API.Controllers
 {
@@ -119,7 +120,12 @@ namespace Gold.IO.Exchange.API.Controllers
                     Message = "Coin error"
                 });
 
-            var result = new BinanceOrderBook() { Symbol = symbol };
+            var result = new BinanceOrderBook()
+            {
+                Symbol = symbol,
+                Asks = new List<BinanceOrderBookEntry>(),
+                Bids = new List<BinanceOrderBookEntry>()
+            };
 
             var orders = OrderService.GetAll()
                 .Where(x => x.Status == Domain.Enum.OrderStatus.Open)
