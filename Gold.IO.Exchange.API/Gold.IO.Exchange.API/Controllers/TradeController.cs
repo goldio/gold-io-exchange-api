@@ -140,6 +140,8 @@ namespace Gold.IO.Exchange.API.Controllers
 
             var openOrders = OrderService.GetAll()
                 .Where(x => x.ID != order.ID &&
+                    x.BaseAsset == baseAssetCoin &&
+                    x.QuoteAsset == quoteAssetCoin &&
                     x.Status == OrderStatus.Open);
 
             Order toCloseOrder;
