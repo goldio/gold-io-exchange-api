@@ -211,8 +211,10 @@ namespace Gold.IO.Exchange.API.Controllers
             foreach (var wallet in wallets)
             {
                 double inOrders = 0;
+                double cost = 0;
 
                 var coin = CoinService.Get(wallet.Coin.ID);
+                var btcCoin = CoinService.GetAll().FirstOrDefault(x => x.ShortName == "BTC");
 
                 var orders = OrderService.GetAll()
                     .Where(x => x.User == user &&
@@ -227,7 +229,22 @@ namespace Gold.IO.Exchange.API.Controllers
                         inOrders += order.Balance;
                 }
 
-                data.Add(new UserWalletViewModel(WalletService.Get(wallet.ID), inOrders, 0));
+                if (coin.ShortName != "BTC")
+                {
+                    var price = OrderService.GetAll()
+                        .FirstOrDefault(x => x.BaseAsset == coin && x.QuoteAsset == btcCoin);
+
+                    if (price != null)
+                        cost = wallet.TotalBalance * price.Price;
+                    else
+                        cost = 0;
+                }
+                else
+                {
+                    cost = wallet.TotalBalance;
+                }
+
+                data.Add(new UserWalletViewModel(WalletService.Get(wallet.ID), inOrders, cost));
             }
 
             return Json(new DataResponse<List<UserWalletViewModel>> { Data = data });
