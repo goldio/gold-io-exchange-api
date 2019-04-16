@@ -254,7 +254,9 @@ namespace Gold.IO.Exchange.API.Controllers
 
                 var openOrders = OrderService.GetAll()
                     .Where(x => x.ID != buyOrder.ID &&
-                        x.Status == OrderStatus.Open);
+                        x.Status == OrderStatus.Open &&
+                        x.BaseAsset == buyOrder.BaseAsset &&
+                        x.QuoteAsset == buyOrder.QuoteAsset);
 
                 var toCloseOrder = openOrders
                         .FirstOrDefault(x => x.Type == OrderType.Sell &&
@@ -390,7 +392,9 @@ namespace Gold.IO.Exchange.API.Controllers
 
                 var openOrders = OrderService.GetAll()
                     .Where(x => x.ID != sellOrder.ID &&
-                        x.Status == OrderStatus.Open);
+                        x.Status == OrderStatus.Open &&
+                        x.BaseAsset == sellOrder.BaseAsset &&
+                        x.QuoteAsset == sellOrder.QuoteAsset);
 
                 var toCloseOrder = openOrders
                         .FirstOrDefault(x => x.Type == OrderType.Buy &&
