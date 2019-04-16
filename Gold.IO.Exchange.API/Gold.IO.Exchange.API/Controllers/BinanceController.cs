@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Binance.Net;
 using Gold.IO.Exchange.API.ViewModels.Response;
 using Binance.Net.Objects;
+using Gold.IO.Exchange.API.BusinessLogic.Interfaces;
+using System.Linq;
 
 namespace Gold.IO.Exchange.API.Controllers
 {
@@ -10,6 +12,17 @@ namespace Gold.IO.Exchange.API.Controllers
     [ApiController]
     public class BinanceController : Controller
     {
+        private ICoinService CoinService { get; set; }
+        private IOrderService OrderService { get; set; }
+
+        public BinanceController([FromServices]
+            ICoinService coinService,
+            IOrderService orderService)
+        {
+            CoinService = coinService;
+            OrderService = orderService;
+        }
+
         [HttpGet("exchangeInfo")]
         public async Task<IActionResult> GetExchangeInfo()
         {
@@ -91,27 +104,47 @@ namespace Gold.IO.Exchange.API.Controllers
         [HttpGet("depth/{symbol}")]
         public async Task<IActionResult> GetOrderBook(string symbol)
         {
-            using (var client = new BinanceClient())
-            {
-                client.SetApiCredentials(
-                    "ryHIGtf0risXmrDLlsorJgtCCp395HGtEWdRIOETMcLJq45AbK5hFx4xDYt8p0aE", 
-                    "ZOONzdSsQFG1opcll62ueeU8Vn4wInrHTyxUbY3kyk4HjNEHBLBc3Jf4FUcjxx4X"
-                );
+            var coins = symbol.Split(".");
 
-                var result = await client.GetOrderBookAsync(symbol, 1000);
+            var baseCoin = CoinService.GetAll()
+                .FirstOrDefault(x => x.ShortName.Equals(coins[0]));
 
-                if (!result.Success)
-                    return Json(new ResponseModel {
-                        Success = result.Success,
-                        Message = result.Error.Message
+            var quoteCoin = CoinService.GetAll()
+                .FirstOrDefault(x => x.ShortName.Equals(coins[1]));
+
+            if (baseCoin == null || quoteCoin == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Coin error"
+                });
+
+            var result = new BinanceOrderBook() { Symbol = symbol };
+
+            var orders = OrderService.GetAll()
+                .Where(x => x.Status == Domain.Enum.OrderStatus.Open)
+                .ToList();
+
+            foreach (var order in orders)
+                if (order.Type == Domain.Enum.OrderType.Buy)
+                    result.Asks.Add(new BinanceOrderBookEntry
+                    {
+                        Price = (decimal)order.Price,
+                        Quantity = (decimal)order.Balance
+                    });
+                else if (order.Type == Domain.Enum.OrderType.Sell)
+                    result.Bids.Add(new BinanceOrderBookEntry
+                    {
+                        Price = (decimal)order.Price,
+                        Quantity = (decimal)order.Balance
                     });
 
-                return Json(new DataResponse<BinanceOrderBook> {
-                    Success = result.Success,
-                    Message = "OK",
-                    Data = result.Data
-                });
-            }
+            return Json(new DataResponse<BinanceOrderBook>
+            {
+                Success = true,
+                Message = "OK",
+                Data = result
+            });
         }
     }
 }
