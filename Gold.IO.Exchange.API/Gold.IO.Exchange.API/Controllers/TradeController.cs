@@ -482,6 +482,11 @@ namespace Gold.IO.Exchange.API.Controllers
                     Message = "Coin error"
                 });
 
+            var stats = new PairStatsViewModel
+            {
+                Last = GetCurrentPrice(baseAsset.ShortName, quoteAsset.ShortName)
+            };
+
             var now = DateTime.UtcNow;
 
             var dailyOrders = OrderService.GetAll()
@@ -498,21 +503,23 @@ namespace Gold.IO.Exchange.API.Controllers
                     x.BaseAsset == baseAsset &&
                     x.QuoteAsset == quoteAsset);
 
-            var prevDayOrder = OrderService.GetAll()
-                .FirstOrDefault(x => x.Time <= lastOrder.Time.Subtract(TimeSpan.FromDays(1)) &&
-                    x.Status == OrderStatus.Closed &&
-                    x.BaseAsset == baseAsset &&
-                    x.QuoteAsset == quoteAsset);
-
-            var stats = new PairStatsViewModel
+            if (lastOrder == null)
             {
-                Last = GetCurrentPrice(baseAsset.ShortName, quoteAsset.ShortName)
-            };
-
-            if (lastOrder != null && prevDayOrder != null)
-                stats.Change = Math.Round(lastOrder.Price, 8) - Math.Round(prevDayOrder.Price, 8);
-            else
                 stats.Change = 0;
+            }
+            else
+            {
+                var prevDayOrder = OrderService.GetAll()
+                    .FirstOrDefault(x => x.Time <= lastOrder.Time.Subtract(TimeSpan.FromDays(1)) &&
+                        x.Status == OrderStatus.Closed &&
+                        x.BaseAsset == baseAsset &&
+                        x.QuoteAsset == quoteAsset);
+
+                if (prevDayOrder == null)
+                    stats.Change = 0;
+                else
+                    stats.Change = Math.Round(lastOrder.Price, 8) - Math.Round(prevDayOrder.Price, 8);
+            }
 
             if (dailyOrders != null && dailyOrders.Count != 0)
             {
