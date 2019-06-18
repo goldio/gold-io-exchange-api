@@ -24,10 +24,10 @@ namespace Gold.IO.Exchange.API.TransactionsManager
 
         public TransactionsManager()
         {
-            var myTimer = new Timer();
-            myTimer.Elapsed += new ElapsedEventHandler(CheckOperations);
-            myTimer.Interval = 63250 * 3;
-            myTimer.Start();
+            //var myTimer = new Timer();
+            //myTimer.Elapsed += new ElapsedEventHandler(CheckOperations);
+            //myTimer.Interval = 63250 * 3;
+            //myTimer.Start();
         }
 
         public void SetServices(
@@ -57,7 +57,7 @@ namespace Gold.IO.Exchange.API.TransactionsManager
             //CheckBitcoinOperations(operations.Where(x => x.Address.Wallet.Coin.ShortName == "BTC" && x.Status == UserWalletOperationStatus.InProgress).ToList());
             //CheckEthereumOperations(operations.Where(x => x.Address.Wallet.Coin.ShortName == "ETH" && x.Status == UserWalletOperationStatus.InProgress).ToList());
             CheckEosOperations(operations.Where(x => x.Address.Wallet.Coin.ShortName == "EOS" && x.Status == UserWalletOperationStatus.InProgress).ToList());
-            CheckEosOperations(operations.Where(x => x.Address.Wallet.Coin.ShortName == "GIO" && x.Status == UserWalletOperationStatus.InProgress).ToList());
+            //CheckEosOperations(operations.Where(x => x.Address.Wallet.Coin.ShortName == "GIO" && x.Status == UserWalletOperationStatus.InProgress).ToList());
 
             IsWorking = false;
         }
@@ -192,20 +192,23 @@ namespace Gold.IO.Exchange.API.TransactionsManager
                     {
                         if (o.Address.PublicAddress == a.Action.Data.Memo && a.Action.Data.To == "eosiaaaaaaaa")
                         {
-                            var amount = double.Parse(a.Action.Data.Quantity.Replace("EOS", "").Replace("GIO", "").Replace(" ", ""));
+                            if (o.Status == UserWalletOperationStatus.InProgress)
+                            {
+                                var amount = double.Parse(a.Action.Data.Quantity.Replace("EOS", "").Replace("GIO", "").Replace(" ", ""));
 
-                            o.Address.IsUsing = false;
-                            CoinAddressService.Update(o.Address);
+                                o.Address.IsUsing = false;
+                                CoinAddressService.Update(o.Address);
 
-                            o.Address.Wallet.Balance += amount;
-                            UserWalletService.Update(o.Address.Wallet);
+                                o.Address.Wallet.Balance += amount;
+                                UserWalletService.Update(o.Address.Wallet);
 
-                            o.Confirmations = 1;
-                            o.Amount = amount;
-                            o.Time = a.BlockTime;
-                            o.Status = UserWalletOperationStatus.Completed;
-                            UserWalletOperationService.Update(o);
-                            break;
+                                o.Confirmations = 1;
+                                o.Amount = amount;
+                                o.Time = a.BlockTime;
+                                o.Status = UserWalletOperationStatus.Completed;
+                                UserWalletOperationService.Update(o);
+                                break;
+                            }
                         }
                     }
                 }

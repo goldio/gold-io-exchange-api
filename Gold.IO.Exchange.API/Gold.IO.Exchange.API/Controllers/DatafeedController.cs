@@ -13,6 +13,7 @@ namespace Gold.IO.Exchange.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [ApiExplorerSettings(IgnoreApi = true)]
     public class DatafeedController : Controller
     {
         private ICoinService CoinService { get; set; }

@@ -11,6 +11,7 @@ namespace Gold.IO.Exchange.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [ApiExplorerSettings(IgnoreApi = true)]
     public class BinanceController : Controller
     {
         private ICoinService CoinService { get; set; }
@@ -134,13 +135,13 @@ namespace Gold.IO.Exchange.API.Controllers
                 .ToList();
 
             foreach (var order in orders)
-                if (order.Type == Domain.Enum.OrderType.Buy)
+                if (order.Side == Domain.Enum.OrderSide.Buy)
                     result.Asks.Add(new BinanceOrderBookEntry
                     {
                         Price = (decimal)order.Price,
                         Quantity = (decimal)order.Balance
                     });
-                else if (order.Type == Domain.Enum.OrderType.Sell)
+                else if (order.Side == Domain.Enum.OrderSide.Sell)
                     result.Bids.Add(new BinanceOrderBookEntry
                     {
                         Price = (decimal)order.Price,

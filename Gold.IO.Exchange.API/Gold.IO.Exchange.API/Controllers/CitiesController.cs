@@ -10,6 +10,7 @@ namespace Gold.IO.Exchange.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [ApiExplorerSettings(IgnoreApi = true)]
     public class CitiesController : Controller
     {
         private ICityService CityService { get; set; }

@@ -42,8 +42,8 @@ namespace Gold.IO.Exchange.API.TradeManager
             IsWorking = true;
 
             var orders = OrderService.GetAll().Where(x => x.Status == OrderStatus.Open);
-            var buyOrders = orders.Where(x => x.Type == OrderType.Buy);
-            var sellOrders = orders.Where(x => x.Type == OrderType.Sell);
+            var buyOrders = orders.Where(x => x.Side == OrderSide.Buy);
+            var sellOrders = orders.Where(x => x.Side == OrderSide.Sell);
 
             try
             {

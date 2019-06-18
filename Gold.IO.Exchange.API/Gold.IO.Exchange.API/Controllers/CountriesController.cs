@@ -11,6 +11,7 @@ namespace Gold.IO.Exchange.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [ApiExplorerSettings(IgnoreApi = true)]
     public class CountriesController : Controller
     {
         private ILocaleService LocaleService { get; set; }

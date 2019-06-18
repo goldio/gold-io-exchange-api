@@ -1,4 +1,5 @@
 ﻿using FluentNHibernate.Mapping;
+using Gold.IO.Exchange.API.Domain.Enum;
 using Gold.IO.Exchange.API.Domain.User;
 using System;
 using System.Collections.Generic;
@@ -17,10 +18,8 @@ namespace Gold.IO.Exchange.API.Storage.Mappings
             References(e => e.User, "id_user");
 
             Map(u => u.PublicKey, "public_key");
-            Map(u => u.SecretKey, "secret_key");
-            Map(u => u.AccountPermissions, "account_permissions");
-            Map(u => u.OrdersPermissions, "orders_permissions");
-            Map(u => u.FundsPermissions, "funds_permissions");
+            Map(u => u.Role, "role").CustomType<ApiKeyRole>();
+            Map(u => u.Expired, "expired");
 
             Map(u => u.Deleted, "deleted").Not.Nullable();
         }

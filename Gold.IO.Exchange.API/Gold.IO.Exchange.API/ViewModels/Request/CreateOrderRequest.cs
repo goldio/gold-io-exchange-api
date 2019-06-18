@@ -11,6 +11,7 @@ namespace Gold.IO.Exchange.API.ViewModels.Request
         public string BaseAsset { get; set; }
         public string QuoteAsset { get; set; }
         public OrderType Type { get; set; }
+        public OrderSide Side { get; set; }
         public double Price { get; set; }
         public double Amount { get; set; }
     }

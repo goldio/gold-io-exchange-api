@@ -12,6 +12,7 @@ namespace Gold.IO.Exchange.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [ApiExplorerSettings(IgnoreApi = true)]
     public class CoinsController : Controller
     {
         private ICoinService CoinService { get; set; }

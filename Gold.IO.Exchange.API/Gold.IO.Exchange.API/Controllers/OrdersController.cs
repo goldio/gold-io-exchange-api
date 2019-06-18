@@ -15,6 +15,7 @@ namespace Gold.IO.Exchange.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [ApiExplorerSettings(IgnoreApi = true)]
     public class OrdersController : Controller
     {
         private IOrderService OrderService { get; set; }
@@ -87,7 +88,7 @@ namespace Gold.IO.Exchange.API.Controllers
                 Balance = request.Amount,
                 Price = request.Price,
                 Status = OrderStatus.Open,
-                Type = request.Type,
+                Side = request.Side,
                 Time = DateTime.UtcNow
             };
 
@@ -120,6 +121,54 @@ namespace Gold.IO.Exchange.API.Controllers
                 .ToList();
 
             return Json(new DataResponse<List<OrderViewModel>> { Data = orders });
+        }
+
+        [HttpGet("pairs/{symbol}/orders/book")]
+        public async Task<IActionResult> GetOrderBook(string symbol)
+        {
+            var coins = symbol.Split(".");
+
+            var baseAsset = CoinService.GetAll()
+                .FirstOrDefault(x => x.ShortName.Equals(coins[0]));
+
+            var quoteAsset = CoinService.GetAll()
+                .FirstOrDefault(x => x.ShortName.Equals(coins[1]));
+
+            if (baseAsset == null || quoteAsset == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Coin error"
+                });
+
+            var orders = OrderService.GetAll()
+                .Where(x => x.BaseAsset == baseAsset &&
+                    x.QuoteAsset == quoteAsset &&
+                    x.Status == OrderStatus.Open)
+                .ToList();
+
+            var asks = new List<double[]>();
+            var bids = new List<double[]>();
+
+            foreach (var order in orders)
+            {
+                if (order.Side == OrderSide.Buy)
+                {
+                    asks.Add(new double[] { order.Price, order.Amount });
+                    continue;
+                }
+
+                if (order.Side == OrderSide.Sell)
+                {
+                    bids.Add(new double[] { order.Price, order.Amount });
+                }
+            }
+
+            return Ok(new DepthResponse
+            {
+                Asks = asks,
+                Bids = bids
+            });
         }
     }
 }

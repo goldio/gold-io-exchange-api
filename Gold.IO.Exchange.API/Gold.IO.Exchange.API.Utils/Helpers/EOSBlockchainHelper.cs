@@ -1,11 +1,4 @@
-﻿using Nethereum.Hex.HexConvertors.Extensions;
-using Nethereum.Hex.HexTypes;
-using Nethereum.Signer;
-using Nethereum.Signer.Crypto;
-using Nethereum.Util;
-using Nethereum.Web3;
-using Nethereum.Web3.Accounts;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -14,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Gold.IO.Exchange.API.Utils.Helpers
 {
-    public static class EthereumBlockchainHelper
+    public static class EOSBlockchainHelper
     {
         public static string GetAddress()
         {
@@ -23,7 +16,7 @@ namespace Gold.IO.Exchange.API.Utils.Helpers
                 var message = new HttpRequestMessage
                 {
                     Method = HttpMethod.Get,
-                    RequestUri = new Uri("http://188.42.174.122:5002/api/wallet/deposit")
+                    RequestUri = new Uri("http://188.42.174.122:5003/api/wallet/deposit")
                 };
 
                 message.Headers.Add("API_KEY", "5581292B69E456097282825F1C77B506");
@@ -42,7 +35,7 @@ namespace Gold.IO.Exchange.API.Utils.Helpers
                 if (!result.Success)
                     return null;
 
-                return result.Address;
+                return result.Memo;
             }
         }
 
@@ -54,7 +47,7 @@ namespace Gold.IO.Exchange.API.Utils.Helpers
                 Amount = amount
             };
 
-            var response = SendPostAsync("http://188.42.174.122:5002/api/wallet/withdraw", request);
+            var response = SendPostAsync("http://188.42.174.122:5003/api/wallet/withdraw", request);
             response.Wait();
 
             if (!response.Result.IsSuccessStatusCode)
@@ -64,28 +57,6 @@ namespace Gold.IO.Exchange.API.Utils.Helpers
             responseReader.Wait();
 
             return responseReader.Result;
-        }
-
-        public static decimal CalculateTxFee(string addressTo, decimal amount)
-        {
-            var request = new WithdrawalRequest
-            {
-                AddressTo = addressTo,
-                Amount = amount
-            };
-
-            var response = SendPostAsync("http://188.42.174.122:5002/api/wallet/fee", request);
-            response.Wait();
-
-            if (!response.Result.IsSuccessStatusCode)
-                return 0;
-
-            var responseReader = response.Result.Content.ReadAsStringAsync();
-            responseReader.Wait();
-
-            var result = decimal.Parse(responseReader.Result);
-
-            return result;
         }
 
         private static async Task<HttpResponseMessage> SendPostAsync(string url, object body)
@@ -110,7 +81,7 @@ namespace Gold.IO.Exchange.API.Utils.Helpers
 
         class DepositResponse
         {
-            public string Address { get; set; }
+            public string Memo { get; set; }
             public bool Success { get; set; }
             public string Message { get; set; }
         }

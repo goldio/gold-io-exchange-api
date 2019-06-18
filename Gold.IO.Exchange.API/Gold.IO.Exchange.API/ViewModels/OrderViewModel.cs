@@ -14,6 +14,7 @@ namespace Gold.IO.Exchange.API.ViewModels
         public double Balance { get; set; }
         public double Price { get; set; }
         public OrderType Type { get; set; }
+        public OrderSide Side { get; set; }
         public OrderStatus Status { get; set; }
         public DateTime Time { get; set; }
 
@@ -29,6 +30,7 @@ namespace Gold.IO.Exchange.API.ViewModels
             Balance = order.Balance;
             Price = order.Price;
             Type = order.Type;
+            Side = order.Side;
             Status = order.Status;
             Time = order.Time;
         }

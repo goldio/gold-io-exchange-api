@@ -30,6 +30,7 @@ namespace Gold.IO.Exchange.API.Controllers
     [Route("api/[controller]")]
     [ApiController]
     //[Authorize]
+    [ApiExplorerSettings(IgnoreApi = true)]
     public class WalletsController : Controller
     {
         private IUserService UserService { get; set; }
@@ -67,6 +68,8 @@ namespace Gold.IO.Exchange.API.Controllers
             // 0x5d6E78DdD81A59e2e562e5629d13217a50f237dA
             var web3 = new RpcClient(new Uri("https://mainnet.infura.io/v3/95eecca9b719440d8d60600b8928aa9b"));
             var balance = await web3.SendRequestAsync<string>(new RpcRequest(1, "eth_getBalance", new[] { address, "latest" }));
+            //new Web3().TransactionManager.EstimateGasAsync(new Nethereum.RPC.Eth.DTOs.CallInput());
+            //new Web3().TransactionManager.SignTransactionAsync()
             return Json(Web3.Convert.FromWei(new HexBigInteger(balance)));
         }
 
@@ -115,7 +118,11 @@ namespace Gold.IO.Exchange.API.Controllers
         [HttpPost("withdrawalVerify")]
         public async Task<IActionResult> WithdrawalVerify([FromBody] VerifyWithdrawal request)
         {
-            var address = CoinAddressService.GetAll().FirstOrDefault(x => x.PublicAddress.Equals(request.Address));
+            var address = CoinAddressService.GetAll()
+                .OrderByDescending(x => x.ID)
+                .AsEnumerable()
+                .FirstOrDefault(x => x.PublicAddress.Equals(request.Address));
+
             if (address == null)
                 return Json(new ResponseModel { Success = false, Message = "Address not found" });
 
@@ -133,7 +140,12 @@ namespace Gold.IO.Exchange.API.Controllers
             operation.Status = UserWalletOperationStatus.Completed;
             WalletOperationService.Update(operation);
 
-            address.Wallet.Balance -= (double)request.Amount;
+            var amount = (double)request.Amount;
+            var balance = address.Wallet.Balance;
+
+            var newBalance = Math.Round(balance, 8) - Math.Round(amount, 8);
+
+            address.Wallet.Balance = newBalance;
             WalletService.Update(address.Wallet);
 
             return Json(new ResponseModel());
@@ -223,9 +235,9 @@ namespace Gold.IO.Exchange.API.Controllers
 
                 foreach (var order in orders)
                 {
-                    if (order.Type == OrderType.Buy && order.QuoteAsset == coin)
+                    if (order.Side == OrderSide.Buy && order.QuoteAsset == coin)
                         inOrders += order.Balance * order.Price;
-                    else if (order.Type == OrderType.Sell && order.BaseAsset == coin)
+                    else if (order.Side == OrderSide.Sell && order.BaseAsset == coin)
                         inOrders += order.Balance;
                 }
 
@@ -320,7 +332,9 @@ namespace Gold.IO.Exchange.API.Controllers
                 }
                 else if (wallet.Coin.ShortName.Equals("EOS") || wallet.Coin.ShortName.Equals("GIO"))
                 {
-                    var memo = CryptHelper.CreateMD5($"{wallet.User.Login}_{DateTime.UtcNow}").Substring(0, 12);
+                    var memo = EOSBlockchainHelper.GetAddress();
+                    if (memo == null)
+                        return Json(new ResponseModel { Success = false, Message = "Address error" });
 
                     address = new CoinAddress
                     {
@@ -344,6 +358,17 @@ namespace Gold.IO.Exchange.API.Controllers
             }
 
             return Json(new DepositResponse { Address = address.PublicAddress });
+        }
+
+        [HttpPost("calcFee")]
+        public async Task<IActionResult> CalcFee([FromBody] WithdrawRequest request)
+        {
+            var fee = EthereumBlockchainHelper.CalculateTxFee(request.Address, (decimal)request.Amount);
+
+            return Ok(new FeeResponse
+            {
+                Fee = (double)fee
+            });
         }
 
         [HttpPost("{id}/withdraw")]
@@ -384,14 +409,9 @@ namespace Gold.IO.Exchange.API.Controllers
             {
                 var tx = EthereumBlockchainHelper.SendTransaction(request.Address, (decimal)request.Amount);
             }
-            else if (wallet.Coin.ShortName.Equals("EOS") || wallet.Coin.ShortName.Equals("GIO"))
+            else if (wallet.Coin.ShortName.Equals("EOS"))
             {
-                using (var cryptolions = new СryptolionsClient())
-                {
-                    await cryptolions.CreateWithdrawalRequest(withdrawOrder.Address.PublicAddress, withdrawOrder.Amount, wallet.Coin.ShortName);
-                    wallet.Balance -= request.Amount;
-                    WalletService.Update(wallet);
-                }
+                var tx = EOSBlockchainHelper.SendTransaction(request.Address, (decimal)request.Amount);
             }
 
             return Json(new ResponseModel());

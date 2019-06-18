@@ -19,6 +19,7 @@ namespace Gold.IO.Exchange.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [ApiExplorerSettings(IgnoreApi = true)]
     public class TradeController : Controller
     {
         private IUserService UserService { get; set; }
@@ -76,7 +77,7 @@ namespace Gold.IO.Exchange.API.Controllers
             var user = UserService.GetAll()
                 .FirstOrDefault(x => x.Login == User.Identity.Name);
 
-            if (request.Type == OrderType.Buy)
+            if (request.Side == OrderSide.Buy)
             {
                 var wallet = UserWalletService.GetAll()
                     .FirstOrDefault(x => x.User == user &&
@@ -90,7 +91,7 @@ namespace Gold.IO.Exchange.API.Controllers
                     });
             }
 
-            if (request.Type == OrderType.Sell)
+            if (request.Side == OrderSide.Sell)
             {
                 var wallet = UserWalletService.GetAll()
                     .FirstOrDefault(x => x.User == user &&
@@ -113,7 +114,7 @@ namespace Gold.IO.Exchange.API.Controllers
                 Balance = request.Amount,
                 Price = request.Price,
                 Status = OrderStatus.Open,
-                Type = request.Type,
+                Side = request.Side,
                 Time = DateTime.UtcNow
             };
 
@@ -146,13 +147,13 @@ namespace Gold.IO.Exchange.API.Controllers
 
             Order toCloseOrder;
 
-            if (order.Type == OrderType.Buy)
+            if (order.Side == OrderSide.Buy)
                 toCloseOrder = openOrders
-                    .FirstOrDefault(x => x.Type == OrderType.Sell &&
+                    .FirstOrDefault(x => x.Side == OrderSide.Sell &&
                         x.Price <= order.Price && x.Balance > 0);
-            else if (order.Type == OrderType.Sell)
+            else if (order.Side == OrderSide.Sell)
                 toCloseOrder = openOrders
-                    .FirstOrDefault(x => x.Type == OrderType.Buy &&
+                    .FirstOrDefault(x => x.Side == OrderSide.Buy &&
                         x.Price >= order.Price && x.Balance > 0);
             else
                 toCloseOrder = null;
@@ -171,8 +172,8 @@ namespace Gold.IO.Exchange.API.Controllers
                 order2
             };
 
-            var buyOrder = orders.FirstOrDefault(x => x.Type == OrderType.Buy);
-            var sellOrder = orders.FirstOrDefault(x => x.Type == OrderType.Sell);
+            var buyOrder = orders.FirstOrDefault(x => x.Side == OrderSide.Buy);
+            var sellOrder = orders.FirstOrDefault(x => x.Side == OrderSide.Sell);
 
             if (buyOrder == null || sellOrder == null)
                 return;
@@ -259,7 +260,7 @@ namespace Gold.IO.Exchange.API.Controllers
                         x.QuoteAsset == buyOrder.QuoteAsset);
 
                 var toCloseOrder = openOrders
-                        .FirstOrDefault(x => x.Type == OrderType.Sell &&
+                        .FirstOrDefault(x => x.Side == OrderSide.Sell &&
                             x.Price <= buyOrder.Price && x.Balance > 0);
 
                 if (toCloseOrder != null)
@@ -397,7 +398,7 @@ namespace Gold.IO.Exchange.API.Controllers
                         x.QuoteAsset == sellOrder.QuoteAsset);
 
                 var toCloseOrder = openOrders
-                        .FirstOrDefault(x => x.Type == OrderType.Buy &&
+                        .FirstOrDefault(x => x.Side == OrderSide.Buy &&
                             x.Price >= sellOrder.Price && x.Balance > 0);
 
                 if (toCloseOrder != null)
@@ -407,6 +408,43 @@ namespace Gold.IO.Exchange.API.Controllers
             }
 
             return;
+        }
+
+        [HttpPost("orders/{id}/cancel")]
+        [Authorize]
+        public async Task<IActionResult> CancelOrder(long id)
+        {
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.Login == User.Identity.Name);
+
+            var order = OrderService.Get(id);
+            if (order == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Order not found"
+                });
+
+            if (order.User != user)
+                return Forbid();
+
+            order.Status = OrderStatus.Canceled;
+            OrderService.Update(order);
+
+            var websocketUsers = WebSocketService.orderBookSubscribers
+                .Where(x => x.Pairs.Contains($"{order.BaseAsset.ShortName}/{order.QuoteAsset.ShortName}"))
+                .ToList();
+
+            foreach (var wsUser in websocketUsers)
+            {
+                await WebSocketService.SendMessageAsync(wsUser.ID, JsonConvert.SerializeObject(new WebSocketMessage
+                {
+                    Type = "orderBookUpdate",
+                    Message = "orderBookUpdate"
+                }));
+            }
+
+            return Ok(new ResponseModel());
         }
 
         [HttpGet("pairs/{symbol}/price")]
@@ -569,13 +607,13 @@ namespace Gold.IO.Exchange.API.Controllers
 
             foreach (var order in orders)
             {
-                if (order.Type == OrderType.Buy)
+                if (order.Side == OrderSide.Buy)
                 {
                     asks.Add(new double[] { order.Price, order.Amount });
                     continue;
                 }
 
-                if (order.Type == OrderType.Sell)
+                if (order.Side == OrderSide.Sell)
                 {
                     bids.Add(new double[] { order.Price, order.Amount });
                 }
@@ -613,11 +651,11 @@ namespace Gold.IO.Exchange.API.Controllers
 
             var response = new OpenOrdersResponse
             {
-                BuyOrders = orders.Where(x => x.Type == OrderType.Buy)
+                BuyOrders = orders.Where(x => x.Side == OrderSide.Buy)
                     .OrderByDescending(x => x.Price)
                     .Select(x => new OrderViewModel(x))
                     .ToList(),
-                SellOrders = orders.Where(x => x.Type == OrderType.Sell)
+                SellOrders = orders.Where(x => x.Side == OrderSide.Sell)
                     .OrderByDescending(x => x.Price)
                     .Select(x => new OrderViewModel(x))
                     .ToList()
@@ -688,6 +726,46 @@ namespace Gold.IO.Exchange.API.Controllers
                 .OrderByDescending(x => x.Time)
                 .Select(x => new OrderViewModel(x))
                 .ToList();
+
+            return Ok(new DataResponse<List<OrderViewModel>>
+            {
+                Data = orders
+            });
+        }
+        [HttpGet("pairs/{symbol}/orders/my/closed")]
+        [Authorize]
+        public async Task<IActionResult> GetMyClosedOrders(string symbol)
+        {
+            var coins = symbol.Split(".");
+
+            var baseAsset = CoinService.GetAll()
+                .FirstOrDefault(x => x.ShortName.Equals(coins[0]));
+
+            var quoteAsset = CoinService.GetAll()
+                .FirstOrDefault(x => x.ShortName.Equals(coins[1]));
+
+            if (baseAsset == null || quoteAsset == null)
+                return BadRequest(new ResponseModel
+                {
+                    Success = false,
+                    Message = "Coin error"
+                });
+
+            var user = UserService.GetAll()
+                .FirstOrDefault(x => x.Login == User.Identity.Name);
+
+            var orders = OrderService.GetAll()
+                .Where(x => x.BaseAsset == baseAsset &&
+                    x.QuoteAsset == quoteAsset &&
+                    x.User == user)
+                .OrderByDescending(x => x.Time)
+                .Select(x => new OrderViewModel(x))
+                .ToList();
+
+            orders = orders.Where(x =>
+                x.Status == OrderStatus.Closed ||
+                x.Status == OrderStatus.Canceled)
+            .ToList();
 
             return Ok(new DataResponse<List<OrderViewModel>>
             {

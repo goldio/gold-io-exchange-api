@@ -4,10 +4,11 @@ using System.Text;
 
 namespace Gold.IO.Exchange.API.Domain.Enum
 {
-    public enum OrderType
+    public enum ApiKeyRole
     {
-        Limit = 1,
-        Market = 2,
-        Stoploss = 3
+        NoActions = 0,
+        OnlyAccount = 1,
+        OnlyOrders = 2,
+        AllActions = 3
     }
 }

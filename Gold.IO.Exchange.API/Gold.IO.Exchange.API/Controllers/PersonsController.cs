@@ -12,6 +12,7 @@ namespace Gold.IO.Exchange.API.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
+    [ApiExplorerSettings(IgnoreApi = true)]
     public class PersonsController : Controller
     {
         private IUserService UserService { get; set; }
