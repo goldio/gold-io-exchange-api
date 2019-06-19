@@ -11,6 +11,7 @@ namespace Gold.IO.Exchange.API.Domain.Order
         public virtual double Amount { get; set; }
         public virtual double Balance { get; set; }
         public virtual double Price { get; set; }
+        public virtual double Limit { get; set; }
         public virtual OrderSide Side { get; set; }
         public virtual OrderType Type { get; set; }
         public virtual OrderStatus Status { get; set; }

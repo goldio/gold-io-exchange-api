@@ -461,6 +461,7 @@ namespace Gold.IO.Exchange.API.Controllers.Public
                 Amount = request.Amount,
                 Balance = request.Amount,
                 Price = request.Price,
+                Limit = request.Limit,
                 Status = OrderStatus.Open,
                 Side = request.Side,
                 Time = DateTime.UtcNow

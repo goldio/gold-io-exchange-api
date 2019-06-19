@@ -13,6 +13,7 @@ namespace Gold.IO.Exchange.API.ViewModels
         public double Amount { get; set; }
         public double Balance { get; set; }
         public double Price { get; set; }
+        public double Limit { get; set; }
         public OrderType Type { get; set; }
         public OrderSide Side { get; set; }
         public OrderStatus Status { get; set; }
@@ -28,6 +29,7 @@ namespace Gold.IO.Exchange.API.ViewModels
             QuoteAsset = new CoinViewModel(order.QuoteAsset);
             Amount = order.Amount;
             Balance = order.Balance;
+            Limit = order.Limit;
             Price = order.Price;
             Type = order.Type;
             Side = order.Side;

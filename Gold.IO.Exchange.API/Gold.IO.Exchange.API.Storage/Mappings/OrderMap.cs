@@ -19,6 +19,7 @@ namespace Gold.IO.Exchange.API.Storage.Mappings
             Map(u => u.Amount, "amount");
             Map(u => u.Balance, "balance");
             Map(u => u.Price, "price");
+            Map(u => u.Limit, "limit");
             Map(u => u.Type, "type").CustomType<OrderType>();
             Map(u => u.Side, "side").CustomType<OrderSide>();
             Map(u => u.Status, "status").CustomType<OrderStatus>();

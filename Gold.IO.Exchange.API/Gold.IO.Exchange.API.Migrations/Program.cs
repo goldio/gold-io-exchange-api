@@ -32,7 +32,7 @@ namespace Gold.IO.Exchange.API.Migrations
                     // Set the connection string
                     .WithGlobalConnectionString("Server=localhost;Port=3306;Uid=root;Pwd=vUw7pf9GALbg;Database=goldio_exchange;SslMode=none;")
                     // Define the assembly containing the migrations
-                    .ScanIn(typeof(OrdersTable).Assembly).For.Migrations())
+                    .ScanIn(typeof(OrdersTableLimit).Assembly).For.Migrations())
                 // Enable logging to console in the FluentMigrator way
                 .AddLogging(lb => lb.AddFluentMigratorConsole())
                 // Build the service provider
