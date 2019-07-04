@@ -16,10 +16,10 @@ namespace Gold.IO.Exchange.API.TradeManager
 
         public TradeManager()
         {
-            //var myTimer = new Timer();
-            //myTimer.Elapsed += new ElapsedEventHandler(CheckOrders);
-            //myTimer.Interval = 30000;
-            //myTimer.Start();
+            var myTimer = new Timer();
+            myTimer.Elapsed += new ElapsedEventHandler(CheckOrders);
+            myTimer.Interval = 30000;
+            myTimer.Start();
         }
 
         public void SetServices(IOrderService orderService, IUserWalletService userWalletService)
@@ -41,7 +41,11 @@ namespace Gold.IO.Exchange.API.TradeManager
 
             IsWorking = true;
 
-            var orders = OrderService.GetAll().Where(x => x.Status == OrderStatus.Open);
+            var orders = OrderService.GetAll()
+                .Where(x =>
+                    x.Type == OrderType.Stoploss &&
+                    x.Status == OrderStatus.Open);
+
             var buyOrders = orders.Where(x => x.Side == OrderSide.Buy);
             var sellOrders = orders.Where(x => x.Side == OrderSide.Sell);
 
